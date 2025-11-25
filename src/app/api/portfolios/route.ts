@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/db/supabase';
+import { db } from '@/lib/db/postgres';
 
 export async function GET(req: Request) {
     try {
@@ -11,8 +11,17 @@ export async function GET(req: Request) {
             return new NextResponse('Unauthorized', { status: 401 });
         }
 
-        const portfolios = await db.getPortfoliosByUserId(session.user.id);
-        return NextResponse.json(portfolios);
+        // Get all portfolios for the user using direct pg client
+        const result = await db.query(
+            `SELECT id, user_id, slug, data, template_id, is_published, is_draft, 
+                    view_count, thumbnail_url, created_at, updated_at, published_at
+             FROM public.app_portfolios 
+             WHERE user_id = $1 
+             ORDER BY updated_at DESC`,
+            [session.user.id]
+        );
+
+        return NextResponse.json(result.rows);
     } catch (error) {
         console.error('[PORTFOLIOS_GET]', error);
         return new NextResponse('Internal Error', { status: 500 });
@@ -35,24 +44,33 @@ export async function POST(req: Request) {
         }
 
         // Check if slug is already taken
-        try {
-            const existing = await db.getPortfolioBySlug(slug);
-            if (existing) {
-                return new NextResponse('Slug already taken', { status: 409 });
-            }
-        } catch (e) {
-            // Ignore error if not found (expected)
+        const existingResult = await db.query(
+            'SELECT id FROM public.app_portfolios WHERE slug = $1 LIMIT 1',
+            [slug]
+        );
+
+        if (existingResult.rows.length > 0) {
+            return new NextResponse('Slug already taken', { status: 409 });
         }
 
-        const portfolio = await db.createPortfolio({
-            user_id: session.user.id,
-            slug,
-            data,
-            template_id: templateId || 'minimal-pro',
-            is_published: isPublished || false,
-        });
+        // Create portfolio using direct pg client
+        const result = await db.query(
+            `INSERT INTO public.app_portfolios 
+             (user_id, slug, data, template_id, is_published, is_draft)
+             VALUES ($1, $2, $3, $4, $5, $6)
+             RETURNING id, user_id, slug, data, template_id, is_published, is_draft, 
+                       view_count, created_at, updated_at`,
+            [
+                session.user.id,
+                slug,
+                JSON.stringify(data),
+                templateId || 'minimal-pro',
+                isPublished || false,
+                !(isPublished || false) // is_draft is opposite of is_published
+            ]
+        );
 
-        return NextResponse.json(portfolio);
+        return NextResponse.json(result.rows[0], { status: 201 });
     } catch (error) {
         console.error('[PORTFOLIOS_POST]', error);
         return new NextResponse('Internal Error', { status: 500 });

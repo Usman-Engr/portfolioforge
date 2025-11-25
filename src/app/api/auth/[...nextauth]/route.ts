@@ -1,7 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { supabase } from "@/lib/db/supabase";
-import bcrypt from "bcryptjs";
 
 export const authOptions = {
     providers: [
@@ -16,25 +15,25 @@ export const authOptions = {
                     throw new Error("Invalid credentials");
                 }
 
-                // Get user from database
-                const { data: user, error } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('email', credentials.email)
-                    .single();
+                // Use Supabase Auth to verify credentials
+                const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+                    email: credentials.email,
+                    password: credentials.password,
+                });
 
-                if (error || !user) {
-                    throw new Error("User not found");
+                if (authError || !authData.user) {
+                    throw new Error("Invalid email or password");
                 }
 
-                // Verify password
-                const isPasswordValid = await bcrypt.compare(
-                    credentials.password,
-                    user.password_hash
-                );
+                // Get user profile from app_users table
+                const { data: user, error: userError } = await supabase
+                    .from('app_users')
+                    .select('*')
+                    .eq('id', authData.user.id)
+                    .single();
 
-                if (!isPasswordValid) {
-                    throw new Error("Invalid password");
+                if (userError || !user) {
+                    throw new Error("User profile not found");
                 }
 
                 return {
@@ -47,14 +46,14 @@ export const authOptions = {
         })
     ],
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user }: { token: any; user: any }) {
             if (user) {
                 token.id = user.id;
                 token.subscriptionStatus = user.subscriptionStatus;
             }
             return token;
         },
-        async session({ session, token }) {
+        async session({ session, token }: { session: any; token: any }) {
             if (session.user) {
                 session.user.id = token.id as string;
                 session.user.subscriptionStatus = token.subscriptionStatus as string;

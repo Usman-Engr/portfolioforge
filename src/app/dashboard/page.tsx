@@ -1,60 +1,59 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useSession, signOut } from 'next-auth/react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
-import { motion } from 'framer-motion';
-import { Plus, LogOut, User, Settings, ExternalLink, Edit, Trash2, Loader2 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { Plus, Eye, Edit, Trash2, ExternalLink, Copy, Loader2, MoreVertical } from 'lucide-react';
 
 interface Portfolio {
     id: string;
     slug: string;
     template_id: string;
+    is_published: boolean;
+    view_count: number;
+    data: any;
     created_at: string;
-    data: {
-        personal: {
-            name: string;
-            title: string;
-        };
-    };
+    updated_at: string;
 }
 
 export default function DashboardPage() {
-    const { data: session, status } = useSession();
     const router = useRouter();
+    const { data: session, status } = useSession();
     const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     useEffect(() => {
-        if (status === 'loading') return;
-
-        if (!session) {
-            router.push('/auth/login');
+        if (status === 'unauthenticated') {
+            router.push('/auth/login?callbackUrl=/dashboard');
             return;
         }
 
-        const fetchPortfolios = async () => {
-            try {
-                const response = await fetch('/api/portfolios');
-                if (response.ok) {
-                    const data = await response.json();
-                    setPortfolios(data);
-                }
-            } catch (error) {
-                console.error('Failed to fetch portfolios:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+        if (status === 'authenticated') {
+            loadPortfolios();
+        }
+    }, [status, router]);
 
-        fetchPortfolios();
-    }, [session, status, router]);
+    const loadPortfolios = async () => {
+        try {
+            const response = await fetch('/api/portfolios');
+            if (response.ok) {
+                const data = await response.json();
+                setPortfolios(data);
+            }
+        } catch (error) {
+            console.error('Failed to load portfolios:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this portfolio?')) return;
+        if (!confirm('Are you sure you want to delete this portfolio? This action cannot be undone.')) {
+            return;
+        }
 
+        setDeletingId(id);
         try {
             const response = await fetch(`/api/portfolios/${id}`, {
                 method: 'DELETE',
@@ -62,216 +61,310 @@ export default function DashboardPage() {
 
             if (response.ok) {
                 setPortfolios(portfolios.filter(p => p.id !== id));
+            } else {
+                alert('Failed to delete portfolio');
             }
         } catch (error) {
-            console.error('Failed to delete portfolio:', error);
+            console.error('Delete error:', error);
+            alert('Failed to delete portfolio');
+        } finally {
+            setDeletingId(null);
         }
     };
 
-    if (status === 'loading' || isLoading) {
+    const handleTogglePublish = async (portfolio: Portfolio) => {
+        try {
+            const response = await fetch(`/api/portfolios/${portfolio.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...portfolio,
+                    is_published: !portfolio.is_published,
+                }),
+            });
+
+            if (response.ok) {
+                loadPortfolios();
+            }
+        } catch (error) {
+            console.error('Toggle publish error:', error);
+        }
+    };
+
+    const handleDuplicate = async (portfolio: Portfolio) => {
+        try {
+            const response = await fetch('/api/portfolios', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    slug: `${portfolio.slug}-copy`,
+                    data: portfolio.data,
+                    templateId: portfolio.template_id,
+                    isPublished: false,
+                }),
+            });
+
+            if (response.ok) {
+                loadPortfolios();
+            }
+        } catch (error) {
+            console.error('Duplicate error:', error);
+        }
+    };
+
+    const copyLink = (slug: string) => {
+        const url = `${window.location.origin}/p/${slug}`;
+        navigator.clipboard.writeText(url);
+        alert('Link copied to clipboard!');
+    };
+
+    if (status === 'loading' || loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
             </div>
         );
     }
 
-    if (!session) return null;
-
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            {/* Header */}
-            <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                    <div className="flex items-center justify-between">
-                        <Link href="/">
-                            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                PortfolioForge
-                            </h1>
-                        </Link>
-
-                        <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2">
-                                <User className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                                <span className="text-sm text-gray-700 dark:text-gray-300">
-                                    {session.user?.name}
-                                </span>
-                            </div>
-                            <Button
-                                variant="outline"
-                                onClick={() => signOut({ callbackUrl: '/' })}
-                                className="flex items-center gap-2"
-                            >
-                                <LogOut className="w-4 h-4" />
-                                Sign Out
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            {/* Main Content */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                {/* Welcome Section */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-12"
-                >
-                    <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                        Welcome back, {session.user?.name?.split(' ')[0]}! 👋
-                    </h2>
-                    <p className="text-gray-600 dark:text-gray-400">
-                        Manage your portfolios and create new ones.
-                    </p>
-                </motion.div>
-
-                {/* Quick Actions */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                    >
-                        <Link href="/templates">
-                            <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-8 text-white hover:shadow-2xl transition-all cursor-pointer group h-full">
-                                <div className="flex items-center justify-between mb-4">
-                                    <Plus className="w-12 h-12 group-hover:scale-110 transition-transform" />
-                                    <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full">
-                                        New
-                                    </span>
-                                </div>
-                                <h3 className="text-2xl font-bold mb-2">Create Portfolio</h3>
-                                <p className="text-blue-100">
-                                    Choose from 3 stunning templates
-                                </p>
-                            </div>
-                        </Link>
-                    </motion.div>
-
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="bg-white dark:bg-gray-800 rounded-2xl p-8 border border-gray-200 dark:border-gray-700 h-full"
-                    >
-                        <div className="flex items-center justify-between mb-4">
-                            <Settings className="w-12 h-12 text-gray-400" />
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-8">
+                    <div>
+                        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
                             My Portfolios
-                        </h3>
+                        </h1>
                         <p className="text-gray-600 dark:text-gray-400">
-                            {portfolios.length} portfolios created
+                            Manage and track your portfolio websites
                         </p>
-                    </motion.div>
-
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="bg-white dark:bg-gray-800 rounded-2xl p-8 border border-gray-200 dark:border-gray-700 h-full"
+                    </div>
+                    <button
+                        onClick={() => router.push('/templates')}
+                        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-semibold"
                     >
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                                <span className="text-2xl">✨</span>
-                            </div>
-                            <span className="text-sm font-medium text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20 px-3 py-1 rounded-full">
-                                {session.user?.subscriptionStatus || 'Free'}
-                            </span>
-                        </div>
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                            Subscription
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400">
-                            Upgrade for premium templates
-                        </p>
-                    </motion.div>
+                        <Plus className="w-5 h-5" />
+                        Create New Portfolio
+                    </button>
                 </div>
 
-                {/* Portfolios List */}
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Your Portfolios</h3>
+                {/* Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <StatCard
+                        label="Total Portfolios"
+                        value={portfolios.length}
+                        icon="📁"
+                    />
+                    <StatCard
+                        label="Published"
+                        value={portfolios.filter(p => p.is_published).length}
+                        icon="🚀"
+                    />
+                    <StatCard
+                        label="Total Views"
+                        value={portfolios.reduce((sum, p) => sum + (p.view_count || 0), 0)}
+                        icon="👁️"
+                    />
+                    <StatCard
+                        label="Drafts"
+                        value={portfolios.filter(p => !p.is_published).length}
+                        icon="📝"
+                    />
+                </div>
 
+                {/* Portfolio Grid */}
                 {portfolios.length === 0 ? (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                        className="bg-white dark:bg-gray-800 rounded-2xl p-12 border border-gray-200 dark:border-gray-700 text-center"
-                    >
-                        <div className="max-w-md mx-auto">
-                            <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
-                                <Plus className="w-10 h-10 text-gray-400" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-                                No portfolios yet
-                            </h3>
-                            <p className="text-gray-600 dark:text-gray-400 mb-8">
-                                Get started by creating your first portfolio. Choose from our beautiful templates.
-                            </p>
-                            <Link href="/templates">
-                                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3">
-                                    <Plus className="w-5 h-5 mr-2" />
-                                    Create Your First Portfolio
-                                </Button>
-                            </Link>
-                        </div>
-                    </motion.div>
+                    <div className="text-center py-20">
+                        <div className="text-6xl mb-4">📁</div>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                            No portfolios yet
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-400 mb-6">
+                            Create your first portfolio to get started
+                        </p>
+                        <button
+                            onClick={() => router.push('/templates')}
+                            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center gap-2"
+                        >
+                            <Plus className="w-5 h-5" />
+                            Create Portfolio
+                        </button>
+                    </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {portfolios.map((portfolio, index) => (
-                            <motion.div
+                        {portfolios.map((portfolio) => (
+                            <PortfolioCard
                                 key={portfolio.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                                className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow"
-                            >
-                                <div className="h-40 bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                                    <span className="text-4xl">
-                                        {portfolio.template_id === 'gradient-pro' ? '🎨' :
-                                            portfolio.template_id === 'creative-studio' ? '⚡' : '📝'}
-                                    </span>
-                                </div>
-                                <div className="p-6">
-                                    <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
-                                        {portfolio.data.personal.name}
-                                    </h4>
-                                    <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
-                                        {portfolio.data.personal.title}
-                                    </p>
-
-                                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                                        <Link
-                                            href={`/p/${portfolio.slug}`}
-                                            target="_blank"
-                                            className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center"
-                                        >
-                                            <ExternalLink className="w-4 h-4 mr-1" />
-                                            View
-                                        </Link>
-                                        <div className="flex gap-2">
-                                            <Link href={`/builder?template=${portfolio.template_id}&portfolioId=${portfolio.id}`}>
-                                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                                    <Edit className="w-4 h-4" />
-                                                </Button>
-                                            </Link>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                                onClick={() => handleDelete(portfolio.id)}
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
+                                portfolio={portfolio}
+                                onEdit={() => router.push(`/builder-new?portfolioId=${portfolio.id}`)}
+                                onDelete={() => handleDelete(portfolio.id)}
+                                onTogglePublish={() => handleTogglePublish(portfolio)}
+                                onDuplicate={() => handleDuplicate(portfolio)}
+                                onCopyLink={() => copyLink(portfolio.slug)}
+                                isDeleting={deletingId === portfolio.id}
+                            />
                         ))}
                     </div>
                 )}
-            </main>
+            </div>
+        </div>
+    );
+}
+
+// Stat Card Component
+function StatCard({ label, value, icon }: { label: string; value: number; icon: string }) {
+    return (
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+                <div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{label}</p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
+                </div>
+                <div className="text-4xl">{icon}</div>
+            </div>
+        </div>
+    );
+}
+
+// Portfolio Card Component
+function PortfolioCard({
+    portfolio,
+    onEdit,
+    onDelete,
+    onTogglePublish,
+    onDuplicate,
+    onCopyLink,
+    isDeleting
+}: {
+    portfolio: Portfolio;
+    onEdit: () => void;
+    onDelete: () => void;
+    onTogglePublish: () => void;
+    onDuplicate: () => void;
+    onCopyLink: () => void;
+    isDeleting: boolean;
+}) {
+    const [showMenu, setShowMenu] = useState(false);
+
+    return (
+        <div className="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg transition-all border border-gray-200 dark:border-gray-700 overflow-hidden">
+            {/* Thumbnail */}
+            <div className="relative h-48 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900">
+                <div className="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-600">
+                    <div className="text-center">
+                        <div className="text-5xl mb-2">🎨</div>
+                        <p className="text-sm">{portfolio.template_id}</p>
+                    </div>
+                </div>
+
+                {/* Status Badge */}
+                <div className="absolute top-4 left-4">
+                    {portfolio.is_published ? (
+                        <span className="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold">
+                            Published
+                        </span>
+                    ) : (
+                        <span className="px-3 py-1 bg-gray-500 text-white rounded-full text-xs font-semibold">
+                            Draft
+                        </span>
+                    )}
+                </div>
+
+                {/* Actions Menu */}
+                <div className="absolute top-4 right-4">
+                    <button
+                        onClick={() => setShowMenu(!showMenu)}
+                        className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                        <MoreVertical className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+                    </button>
+
+                    {showMenu && (
+                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-10">
+                            <button
+                                onClick={() => { onEdit(); setShowMenu(false); }}
+                                className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                            >
+                                <Edit className="w-4 h-4" />
+                                Edit
+                            </button>
+                            <button
+                                onClick={() => { onDuplicate(); setShowMenu(false); }}
+                                className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                            >
+                                <Copy className="w-4 h-4" />
+                                Duplicate
+                            </button>
+                            <button
+                                onClick={() => { onTogglePublish(); setShowMenu(false); }}
+                                className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                            >
+                                <ExternalLink className="w-4 h-4" />
+                                {portfolio.is_published ? 'Unpublish' : 'Publish'}
+                            </button>
+                            <hr className="my-2 border-gray-200 dark:border-gray-700" />
+                            <button
+                                onClick={() => { onDelete(); setShowMenu(false); }}
+                                disabled={isDeleting}
+                                className="w-full px-4 py-2 text-left hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-2 disabled:opacity-50"
+                            >
+                                {isDeleting ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Deleting...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Trash2 className="w-4 h-4" />
+                                        Delete
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    {portfolio.data?.personal?.name || 'Untitled Portfolio'}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    /{portfolio.slug}
+                </p>
+
+                {/* Stats */}
+                <div className="flex items-center gap-4 mb-4 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-1">
+                        <Eye className="w-4 h-4" />
+                        <span>{portfolio.view_count || 0} views</span>
+                    </div>
+                    <div>
+                        Updated {new Date(portfolio.updated_at).toLocaleDateString()}
+                    </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                    <button
+                        onClick={onEdit}
+                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                    >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                    </button>
+                    {portfolio.is_published && (
+                        <button
+                            onClick={onCopyLink}
+                            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                            title="Copy link"
+                        >
+                            <Copy className="w-4 h-4" />
+                        </button>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }

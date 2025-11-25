@@ -6,9 +6,9 @@ import { useSession } from 'next-auth/react';
 import { PortfolioForm } from '@/components/builder/PortfolioForm';
 import { PortfolioData } from '@/types';
 import { storage } from '@/lib/storage';
-import { MinimalProTemplate } from '@/components/templates/MinimalProTemplate';
-import { GradientProTemplate } from '@/components/templates/GradientProTemplate';
-import { CreativeStudioTemplate } from '@/components/templates/CreativeStudioTemplate';
+import MinimalProTemplate from '@/components/templates/MinimalProTemplate';
+import CreativeStudioTemplate from '@/components/templates/CreativeStudioTemplate';
+import ModernTechTemplate from '@/components/templates/ModernTechTemplate';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -165,14 +165,17 @@ export default function BuilderPage() {
     };
 
     const renderTemplate = (data: PortfolioData) => {
+        // Old builder uses wrapper type, templates expect inner data
+        const portfolioData = data.data as any;
+
         switch (templateId) {
-            case 'gradient-pro':
-                return <GradientProTemplate data={data} />;
+            case 'modern-tech':
+                return <ModernTechTemplate data={portfolioData} />;
             case 'creative-studio':
-                return <CreativeStudioTemplate data={data} />;
+                return <CreativeStudioTemplate data={portfolioData} />;
             case 'minimal-pro':
             default:
-                return <MinimalProTemplate data={data} />;
+                return <MinimalProTemplate data={portfolioData} />;
         }
     };
 

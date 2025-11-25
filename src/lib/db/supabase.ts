@@ -10,7 +10,7 @@ export const db = {
     // Portfolio operations
     async getPortfolioBySlug(slug: string) {
         const { data, error } = await supabase
-            .from('portfolios')
+            .from('app_portfolios')
             .select('*')
             .eq('slug', slug)
             .single();
@@ -21,7 +21,7 @@ export const db = {
 
     async getPortfolioById(id: string) {
         const { data, error } = await supabase
-            .from('portfolios')
+            .from('app_portfolios')
             .select('*')
             .eq('id', id)
             .single();
@@ -32,7 +32,7 @@ export const db = {
 
     async getPortfoliosByUserId(userId: string) {
         const { data, error } = await supabase
-            .from('portfolios')
+            .from('app_portfolios')
             .select('*')
             .eq('user_id', userId)
             .order('created_at', { ascending: false });
@@ -52,7 +52,7 @@ export const db = {
         };
 
         const { data, error } = await supabase
-            .from('portfolios')
+            .from('app_portfolios')
             .insert([dbPortfolio])
             .select()
             .single();
@@ -72,7 +72,7 @@ export const db = {
         delete dbUpdates.isPublished;
 
         const { data, error } = await supabase
-            .from('portfolios')
+            .from('app_portfolios')
             .update(dbUpdates)
             .eq('id', id)
             .select()
@@ -84,7 +84,7 @@ export const db = {
 
     async deletePortfolio(id: string) {
         const { error } = await supabase
-            .from('portfolios')
+            .from('app_portfolios')
             .delete()
             .eq('id', id);
 
@@ -99,7 +99,7 @@ export const db = {
     // User operations
     async getUserById(id: string) {
         const { data, error } = await supabase
-            .from('users')
+            .from('app_users')
             .select('*')
             .eq('id', id)
             .single();
@@ -110,7 +110,7 @@ export const db = {
 
     async updateUserSubscription(userId: string, status: 'free' | 'premium') {
         const { data, error } = await supabase
-            .from('users')
+            .from('app_users')
             .update({ subscription_status: status })
             .eq('id', userId)
             .select()

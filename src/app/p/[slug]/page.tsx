@@ -1,62 +1,112 @@
-import React from 'react';
 import { notFound } from 'next/navigation';
-import { db } from '@/lib/db/supabase';
-import { MinimalProTemplate } from '@/components/templates/MinimalProTemplate';
-import { GradientProTemplate } from '@/components/templates/GradientProTemplate';
-import { CreativeStudioTemplate } from '@/components/templates/CreativeStudioTemplate';
-import { PortfolioData } from '@/types';
+import { db } from '@/lib/db/postgres';
+import { PortfolioData } from '@/lib/types/portfolio';
+
+// Template components (will be created in Phase 3)
+import MinimalProTemplate from '@/components/templates/MinimalProTemplate';
 
 interface PageProps {
-    params: Promise<{ slug: string }>;
+    params: { slug: string };
 }
 
-export default async function PortfolioPage({ params }: PageProps) {
-    const { slug } = await params;
+async function getPortfolio(slug: string) {
+    try {
+        const result = await db.query(
+            `SELECT id, user_id, slug, data, template_id, is_published, view_count
+       FROM public.app_portfolios 
+       WHERE slug = $1 AND is_published = true
+       LIMIT 1`,
+            [slug]
+        );
 
-    // Fetch portfolio from database
-    const portfolio = await db.getPortfolioBySlug(slug);
+        if (result.rows.length === 0) {
+            return null;
+        }
+
+        return result.rows[0];
+    } catch (error) {
+        console.error('[GET_PORTFOLIO]', error);
+        return null;
+    }
+}
+
+async function incrementViewCount(slug: string) {
+    try {
+        await db.query(
+            'UPDATE public.app_portfolios SET view_count = view_count + 1 WHERE slug = $1',
+            [slug]
+        );
+    } catch (error) {
+        console.error('[INCREMENT_VIEW]', error);
+    }
+}
+
+export async function generateMetadata({ params }: PageProps) {
+    const portfolio = await getPortfolio(params.slug);
+
+    if (!portfolio) {
+        return {
+            title: 'Portfolio Not Found',
+        };
+    }
+
+    const data: PortfolioData = typeof portfolio.data === 'string'
+        ? JSON.parse(portfolio.data)
+        : portfolio.data;
+
+    return {
+        title: `${data.personal.name} - Portfolio`,
+        description: data.personal.bio,
+        openGraph: {
+            title: `${data.personal.name} - ${data.personal.title}`,
+            description: data.personal.bio,
+            images: data.personal.avatar ? [data.personal.avatar] : [],
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: `${data.personal.name} - ${data.personal.title}`,
+            description: data.personal.bio,
+            images: data.personal.avatar ? [data.personal.avatar] : [],
+        },
+    };
+}
+
+export default async function PublicPortfolioPage({ params }: PageProps) {
+    const portfolio = await getPortfolio(params.slug);
 
     if (!portfolio) {
         notFound();
     }
 
-    // Increment views
-    await db.incrementViews(slug);
+    // Increment view count (async, don't wait)
+    incrementViewCount(params.slug);
 
-    // Transform DB data to PortfolioData type
-    const portfolioData: PortfolioData = {
-        id: portfolio.id,
-        slug: portfolio.slug,
-        templateId: portfolio.template_id,
-        isPublished: portfolio.is_published,
-        data: portfolio.data
-    };
+    const data: PortfolioData = typeof portfolio.data === 'string'
+        ? JSON.parse(portfolio.data)
+        : portfolio.data;
 
-    const renderTemplate = () => {
-        switch (portfolioData.templateId) {
-            case 'gradient-pro':
-                return <GradientProTemplate data={portfolioData} />;
-            case 'creative-studio':
-                return <CreativeStudioTemplate data={portfolioData} />;
-            case 'minimal-pro':
-            default:
-                return <MinimalProTemplate data={portfolioData} />;
-        }
-    };
+    // Render template based on template_id
+    // For now, we'll use MinimalProTemplate as default
+    const TemplateComponent = MinimalProTemplate;
 
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900">
-            {renderTemplate()}
+        <div className="min-h-screen">
+            <TemplateComponent data={data} />
 
-            {/* Footer Credit */}
-            <div className="fixed bottom-4 right-4 z-50">
-                <a
-                    href="/"
-                    target="_blank"
-                    className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all"
+            {/* Share buttons */}
+            <div className="fixed bottom-8 right-8 flex gap-2">
+                <button
+                    onClick={() => {
+                        navigator.clipboard.writeText(window.location.href);
+                        alert('Link copied to clipboard!');
+                    }}
+                    className="bg-white dark:bg-gray-800 shadow-lg rounded-full p-3 hover:scale-110 transition-transform"
+                    title="Copy link"
                 >
-                    Built with PortfolioForge
-                </a>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                </button>
             </div>
         </div>
     );

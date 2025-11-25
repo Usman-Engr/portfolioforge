@@ -21,16 +21,16 @@ export const Navbar = () => {
 
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center gap-8">
-                        <Link href="/#templates" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors">
+                        <Link href="/templates" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors">
                             Templates
+                        </Link>
+                        <Link href="/dashboard" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors">
+                            Dashboard
                         </Link>
                         <Link href="/#pricing" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors">
                             Pricing
                         </Link>
-                        <Link href="/p/demo" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors">
-                            Demo
-                        </Link>
-                        <Link href="/builder">
+                        <Link href="/builder-new">
                             <Button>Get Started</Button>
                         </Link>
                     </div>
@@ -48,11 +48,18 @@ export const Navbar = () => {
                 {isOpen && (
                     <div className="md:hidden py-4 space-y-4">
                         <Link
-                            href="/#templates"
+                            href="/templates"
                             className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors"
                             onClick={() => setIsOpen(false)}
                         >
                             Templates
+                        </Link>
+                        <Link
+                            href="/dashboard"
+                            className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors"
+                            onClick={() => setIsOpen(false)}
+                        >
+                            Dashboard
                         </Link>
                         <Link
                             href="/#pricing"
@@ -61,14 +68,7 @@ export const Navbar = () => {
                         >
                             Pricing
                         </Link>
-                        <Link
-                            href="/p/demo"
-                            className="block text-gray-700 dark:text-gray-300 hover:text-blue-600 transition-colors"
-                            onClick={() => setIsOpen(false)}
-                        >
-                            Demo
-                        </Link>
-                        <Link href="/builder" onClick={() => setIsOpen(false)}>
+                        <Link href="/builder-new" onClick={() => setIsOpen(false)}>
                             <Button className="w-full">Get Started</Button>
                         </Link>
                     </div>

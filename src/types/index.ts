@@ -1,4 +1,18 @@
-// Portfolio Data Types
+// NEW Portfolio Types (from @/lib/types/portfolio)
+// These are used by the new modern builder (/builder-new)
+export type {
+  PortfolioData as NewPortfolioData,
+  PersonalInfo,
+  ContactInfo,
+  SocialLinks,
+  Skill,
+  Project,
+  Experience,
+  Education
+} from '@/lib/types/portfolio';
+
+// LEGACY Portfolio Types (for old builder /builder)
+// Kept for backward compatibility
 export interface PortfolioData {
   id?: string;
   userId?: string;
@@ -7,49 +21,41 @@ export interface PortfolioData {
   isPublished: boolean;
   views?: number;
   data: {
-    personal: PersonalInfo;
-    projects: Project[];
+    personal: {
+      name: string;
+      title: string;
+      bio: string;
+      avatarUrl?: string;
+      location?: string;
+    };
+    projects: Array<{
+      id: string;
+      name: string;
+      description: string;
+      techStack: string[];
+      liveUrl?: string;
+      githubUrl?: string;
+      imageUrl?: string;
+    }>;
     skills: string[];
-    education: Education[];
-    contact: ContactInfo;
+    education: Array<{
+      id: string;
+      degree: string;
+      institution: string;
+      year: string;
+      description?: string;
+    }>;
+    contact: {
+      email: string;
+      phone?: string;
+      linkedin?: string;
+      github?: string;
+      twitter?: string;
+      website?: string;
+    };
   };
   createdAt?: string;
   updatedAt?: string;
-}
-
-export interface PersonalInfo {
-  name: string;
-  title: string;
-  bio: string;
-  avatarUrl?: string;
-  location?: string;
-}
-
-export interface Project {
-  id: string;
-  name: string;
-  description: string;
-  techStack: string[];
-  liveUrl?: string;
-  githubUrl?: string;
-  imageUrl?: string;
-}
-
-export interface Education {
-  id: string;
-  degree: string;
-  institution: string;
-  year: string;
-  description?: string;
-}
-
-export interface ContactInfo {
-  email: string;
-  phone?: string;
-  linkedin?: string;
-  github?: string;
-  twitter?: string;
-  website?: string;
 }
 
 // User Types

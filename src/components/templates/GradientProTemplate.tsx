@@ -9,7 +9,7 @@ interface GradientProTemplateProps {
     data: PortfolioData;
 }
 
-export const GradientProTemplate: React.FC<GradientProTemplateProps> = ({ data }) => {
+export default function GradientProTemplate({ data }: GradientProTemplateProps) {
     const { personal, projects, skills, education, contact } = data.data;
 
     return (

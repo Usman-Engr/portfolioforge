@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/db/supabase';
-import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
     try {
@@ -21,39 +20,27 @@ export async function POST(request: Request) {
             );
         }
 
-        // Check if user already exists
-        const { data: existingUser } = await supabase
-            .from('users')
-            .select('id')
-            .eq('email', email)
-            .single();
-
-        if (existingUser) {
-            return NextResponse.json(
-                { error: 'User already exists' },
-                { status: 409 }
-            );
-        }
-
-        // Hash password
-        const passwordHash = await bcrypt.hash(password, 10);
-
-        // Create user
-        const { data: user, error } = await supabase
-            .from('users')
-            .insert([
-                {
-                    name,
-                    email,
-                    password_hash: passwordHash,
-                    subscription_status: 'free',
-                }
-            ])
-            .select()
-            .single();
+        // Use Supabase Auth to sign up the user
+        // This will trigger the 'on_auth_user_created' trigger to create the public profile
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: {
+                    name: name, // Pass name in metadata for the trigger to use
+                },
+            },
+        });
 
         if (error) {
             console.error('Signup error:', error);
+            return NextResponse.json(
+                { error: error.message },
+                { status: 400 }
+            );
+        }
+
+        if (!data.user) {
             return NextResponse.json(
                 { error: 'Failed to create user' },
                 { status: 500 }
@@ -64,9 +51,9 @@ export async function POST(request: Request) {
             {
                 message: 'User created successfully',
                 user: {
-                    id: user.id,
-                    name: user.name,
-                    email: user.email,
+                    id: data.user.id,
+                    name: name,
+                    email: data.user.email,
                 }
             },
             { status: 201 }

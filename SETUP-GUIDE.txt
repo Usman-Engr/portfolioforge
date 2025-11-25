@@ -1,0 +1,22 @@
+=== QUICK DATABASE SETUP GUIDE ===
+
+STEP 1: Open SQL Editor
+   → Already open in browser OR go to:
+   → https://supabase.com/dashboard/project/cntyiunqbczfkzwhyyqa/sql
+
+STEP 2: Copy SQL Schema
+   → Open file: supabase-schema.sql
+   → Press Ctrl+A (select all)
+   → Press Ctrl+C (copy)
+
+STEP 3: Paste & Run
+   → Click in the SQL Editor text area
+   → Press Ctrl+V (paste)
+   → Click the green "RUN" button
+   → Wait for "Success" message
+
+STEP 4: Verify
+   → Click "Table Editor" in left sidebar
+   → You should see: users, portfolios, payments
+
+That's it! Then we can test signup immediately.
