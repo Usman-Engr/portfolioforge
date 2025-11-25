@@ -1,30 +1,32 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/db/postgres';
+import { authOptions } from '@/lib/auth';
+import { supabaseAdmin } from '@/lib/db/supabase-admin';
 
 export async function GET(req: Request) {
     try {
         const session = await getServerSession(authOptions);
 
         if (!session?.user) {
-            return new NextResponse('Unauthorized', { status: 401 });
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Get all portfolios for the user using direct pg client
-        const result = await db.query(
-            `SELECT id, user_id, slug, data, template_id, is_published, is_draft, 
-                    view_count, thumbnail_url, created_at, updated_at, published_at
-             FROM public.app_portfolios 
-             WHERE user_id = $1 
-             ORDER BY updated_at DESC`,
-            [session.user.id]
-        );
+        // Get all portfolios for the user using Supabase Admin
+        const { data: portfolios, error } = await supabaseAdmin
+            .from('app_portfolios')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .order('updated_at', { ascending: false });
 
-        return NextResponse.json(result.rows);
+        if (error) {
+            console.error('[PORTFOLIOS_GET]', error);
+            return NextResponse.json({ error: 'Failed to fetch portfolios' }, { status: 500 });
+        }
+
+        return NextResponse.json(portfolios || []);
     } catch (error) {
         console.error('[PORTFOLIOS_GET]', error);
-        return new NextResponse('Internal Error', { status: 500 });
+        return NextResponse.json({ error: 'Internal error' }, { status: 500 });
     }
 }
 
@@ -33,46 +35,54 @@ export async function POST(req: Request) {
         const session = await getServerSession(authOptions);
 
         if (!session?.user) {
-            return new NextResponse('Unauthorized', { status: 401 });
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         const body = await req.json();
         const { slug, data, templateId, isPublished } = body;
 
         if (!slug || !data) {
-            return new NextResponse('Missing required fields', { status: 400 });
+            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        // Check if slug is already taken
-        const existingResult = await db.query(
-            'SELECT id FROM public.app_portfolios WHERE slug = $1 LIMIT 1',
-            [slug]
-        );
+        // Check if slug is already taken using Supabase Admin
+        const { data: existing, error: checkError } = await supabaseAdmin
+            .from('app_portfolios')
+            .select('id')
+            .eq('slug', slug)
+            .maybeSingle();
 
-        if (existingResult.rows.length > 0) {
-            return new NextResponse('Slug already taken', { status: 409 });
+        if (checkError) {
+            console.error('[SLUG_CHECK]', checkError);
+            return NextResponse.json({ error: 'Failed to check slug' }, { status: 500 });
         }
 
-        // Create portfolio using direct pg client
-        const result = await db.query(
-            `INSERT INTO public.app_portfolios 
-             (user_id, slug, data, template_id, is_published, is_draft)
-             VALUES ($1, $2, $3, $4, $5, $6)
-             RETURNING id, user_id, slug, data, template_id, is_published, is_draft, 
-                       view_count, created_at, updated_at`,
-            [
-                session.user.id,
-                slug,
-                JSON.stringify(data),
-                templateId || 'minimal-pro',
-                isPublished || false,
-                !(isPublished || false) // is_draft is opposite of is_published
-            ]
-        );
+        if (existing) {
+            return NextResponse.json({ error: 'Slug already taken' }, { status: 409 });
+        }
 
-        return NextResponse.json(result.rows[0], { status: 201 });
+        // Create portfolio using Supabase Admin (bypasses RLS)
+        const { data: portfolio, error: insertError } = await supabaseAdmin
+            .from('app_portfolios')
+            .insert({
+                user_id: session.user.id,
+                slug: slug,
+                data: data,
+                template_id: templateId || 'minimal-pro',
+                is_published: isPublished || false,
+                is_draft: !(isPublished || false)
+            })
+            .select()
+            .single();
+
+        if (insertError) {
+            console.error('[PORTFOLIOS_POST]', insertError);
+            return NextResponse.json({ error: insertError.message || 'Failed to create portfolio' }, { status: 500 });
+        }
+
+        return NextResponse.json(portfolio, { status: 201 });
     } catch (error) {
         console.error('[PORTFOLIOS_POST]', error);
-        return new NextResponse('Internal Error', { status: 500 });
+        return NextResponse.json({ error: 'Internal error' }, { status: 500 });
     }
 }

@@ -93,6 +93,83 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
         <div className="min-h-screen">
             <TemplateComponent data={data} />
 
+            {/* Analytics Tracking */}
+            <script
+                dangerouslySetInnerHTML={{
+                    __html: `
+                        (function() {
+                            const portfolioId = '${portfolio.id}';
+                            const sessionKey = 'portfolio_session_id';
+                            let sessionId = sessionStorage.getItem(sessionKey);
+                            
+                            if (!sessionId) {
+                                sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                                sessionStorage.setItem(sessionKey, sessionId);
+                            }
+                            
+                            const getDeviceType = () => {
+                                const width = window.innerWidth;
+                                if (width < 768) return 'mobile';
+                                if (width < 1024) return 'tablet';
+                                return 'desktop';
+                            };
+                            
+                            const getBrowser = () => {
+                                const ua = navigator.userAgent;
+                                if (ua.includes('Firefox')) return 'Firefox';
+                                if (ua.includes('Chrome')) return 'Chrome';
+                                if (ua.includes('Safari')) return 'Safari';
+                                if (ua.includes('Edge')) return 'Edge';
+                                return 'Unknown';
+                            };
+                            
+                            let viewId = null;
+                            const startTime = Date.now();
+                            
+                            // Track page view
+                            fetch('/api/analytics/track', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    portfolioId: portfolioId,
+                                    sessionId: sessionId,
+                                    referrer: document.referrer || 'Direct',
+                                    deviceType: getDeviceType(),
+                                    browser: getBrowser()
+                                })
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                viewId = data.data?.id;
+                            })
+                            .catch(err => console.error('Tracking error:', err));
+                            
+                            // Update time spent every 10 seconds
+                            setInterval(() => {
+                                if (viewId) {
+                                    const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+                                    fetch('/api/analytics/track', {
+                                        method: 'PATCH',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ viewId, timeSpent })
+                                    });
+                                }
+                            }, 10000);
+                            
+                            // Update on page unload
+                            window.addEventListener('beforeunload', () => {
+                                if (viewId) {
+                                    const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+                                    navigator.sendBeacon('/api/analytics/track', 
+                                        JSON.stringify({ viewId, timeSpent })
+                                    );
+                                }
+                            });
+                        })();
+                    `,
+                }}
+            />
+
             {/* Share buttons */}
             <div className="fixed bottom-8 right-8 flex gap-2">
                 <button

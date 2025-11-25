@@ -2,6 +2,8 @@
 
 import { PortfolioData } from '@/lib/types/portfolio';
 
+import Image from 'next/image';
+
 interface MinimalProTemplateProps {
     data: PortfolioData;
 }
@@ -13,11 +15,14 @@ export default function MinimalProTemplate({ data }: MinimalProTemplateProps) {
                 {/* Header */}
                 <header className="text-center mb-16">
                     {data.personal.avatar && (
-                        <img
-                            src={data.personal.avatar}
-                            alt={data.personal.name}
-                            className="w-32 h-32 rounded-full mx-auto mb-6 object-cover border-4 border-white dark:border-gray-700 shadow-xl"
-                        />
+                        <div className="relative w-32 h-32 mx-auto mb-6">
+                            <Image
+                                src={data.personal.avatar}
+                                alt={data.personal.name}
+                                fill
+                                className="rounded-full object-cover border-4 border-white dark:border-gray-700 shadow-xl"
+                            />
+                        </div>
                     )}
                     <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-3">
                         {data.personal.name}

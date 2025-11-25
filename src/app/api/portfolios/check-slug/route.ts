@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db/postgres';
+import { db } from '@/lib/db/supabase';
 
 export async function GET(req: Request) {
     try {
@@ -11,12 +11,8 @@ export async function GET(req: Request) {
         }
 
         // Check if slug exists in database
-        const result = await db.query(
-            'SELECT id FROM public.app_portfolios WHERE slug = $1 LIMIT 1',
-            [slug]
-        );
-
-        const available = result.rows.length === 0;
+        const portfolio = await db.getPortfolioBySlug(slug);
+        const available = !portfolio;
 
         return NextResponse.json({ available, slug });
     } catch (error) {

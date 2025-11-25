@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Plus, Eye, Edit, Trash2, ExternalLink, Copy, Loader2, MoreVertical } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, ExternalLink, Copy, Loader2, MoreVertical, Activity, Settings } from 'lucide-react';
 
 interface Portfolio {
     id: string;
@@ -287,6 +287,20 @@ function PortfolioCard({
                             >
                                 <Edit className="w-4 h-4" />
                                 Edit
+                            </button>
+                            <button
+                                onClick={() => { window.location.href = `/dashboard/settings/${portfolio.id}`; setShowMenu(false); }}
+                                className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                            >
+                                <Settings className="w-4 h-4" />
+                                Settings
+                            </button>
+                            <button
+                                onClick={() => { window.location.href = `/dashboard/analytics/${portfolio.id}`; setShowMenu(false); }}
+                                className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                            >
+                                <Activity className="w-4 h-4" />
+                                View Analytics
                             </button>
                             <button
                                 onClick={() => { onDuplicate(); setShowMenu(false); }}

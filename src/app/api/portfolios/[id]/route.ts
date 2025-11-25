@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/lib/db/postgres';
+import { authOptions } from '@/lib/auth';
+import { supabase } from '@/lib/db/supabase';
 
 export async function GET(
     req: Request,
@@ -11,25 +11,24 @@ export async function GET(
         const session = await getServerSession(authOptions);
 
         if (!session?.user) {
-            return new NextResponse('Unauthorized', { status: 401 });
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const result = await db.query(
-            `SELECT id, user_id, slug, data, template_id, is_published, is_draft, 
-              view_count, thumbnail_url, created_at, updated_at, published_at
-       FROM public.app_portfolios 
-       WHERE id = $1 AND user_id = $2`,
-            [params.id, session.user.id]
-        );
+        const { data: portfolio, error } = await supabase
+            .from('app_portfolios')
+            .select('*')
+            .eq('id', params.id)
+            .eq('user_id', session.user.id)
+            .single();
 
-        if (result.rows.length === 0) {
-            return new NextResponse('Portfolio not found', { status: 404 });
+        if (error || !portfolio) {
+            return NextResponse.json({ error: 'Portfolio not found' }, { status: 404 });
         }
 
-        return NextResponse.json(result.rows[0]);
+        return NextResponse.json(portfolio);
     } catch (error) {
         console.error('[PORTFOLIO_GET]', error);
-        return new NextResponse('Internal Error', { status: 500 });
+        return NextResponse.json({ error: 'Internal error' }, { status: 500 });
     }
 }
 
@@ -41,61 +40,75 @@ export async function PUT(
         const session = await getServerSession(authOptions);
 
         if (!session?.user) {
-            return new NextResponse('Unauthorized', { status: 401 });
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         const body = await req.json();
-        const { slug, data, template_id, is_published } = body;
+        const { slug, data, templateId, isPublished } = body;
 
         // Verify ownership
-        const ownershipResult = await db.query(
-            'SELECT id FROM public.app_portfolios WHERE id = $1 AND user_id = $2',
-            [params.id, session.user.id]
-        );
+        const { data: existing, error: ownershipError } = await supabase
+            .from('app_portfolios')
+            .select('id')
+            .eq('id', params.id)
+            .eq('user_id', session.user.id)
+            .single();
 
-        if (ownershipResult.rows.length === 0) {
-            return new NextResponse('Portfolio not found or unauthorized', { status: 404 });
+        if (ownershipError || !existing) {
+            return NextResponse.json({ error: 'Portfolio not found or unauthorized' }, { status: 404 });
         }
 
         // Check if slug is taken by another portfolio
         if (slug) {
-            const slugResult = await db.query(
-                'SELECT id FROM public.app_portfolios WHERE slug = $1 AND id != $2',
-                [slug, params.id]
-            );
+            const { data: slugCheck, error: slugError } = await supabase
+                .from('app_portfolios')
+                .select('id')
+                .eq('slug', slug)
+                .neq('id', params.id)
+                .maybeSingle();
 
-            if (slugResult.rows.length > 0) {
-                return new NextResponse('Slug already taken', { status: 409 });
+            if (slugError) {
+                console.error('[SLUG_CHECK]', slugError);
+                return NextResponse.json({ error: 'Failed to check slug' }, { status: 500 });
+            }
+
+            if (slugCheck) {
+                return NextResponse.json({ error: 'Slug already taken' }, { status: 409 });
             }
         }
 
         // Update portfolio
-        const result = await db.query(
-            `UPDATE public.app_portfolios 
-       SET slug = COALESCE($1, slug),
-           data = COALESCE($2, data),
-           template_id = COALESCE($3, template_id),
-           is_published = COALESCE($4, is_published),
-           is_draft = NOT COALESCE($4, is_published),
-           published_at = CASE WHEN $4 = true AND is_published = false THEN NOW() ELSE published_at END,
-           updated_at = NOW()
-       WHERE id = $5 AND user_id = $6
-       RETURNING id, user_id, slug, data, template_id, is_published, is_draft, 
-                 view_count, created_at, updated_at, published_at`,
-            [
-                slug || null,
-                data ? JSON.stringify(data) : null,
-                template_id || null,
-                is_published !== undefined ? is_published : null,
-                params.id,
-                session.user.id
-            ]
-        );
+        const updateData: any = {
+            updated_at: new Date().toISOString()
+        };
 
-        return NextResponse.json(result.rows[0]);
+        if (slug) updateData.slug = slug;
+        if (data) updateData.data = data;
+        if (templateId) updateData.template_id = templateId;
+        if (typeof isPublished === 'boolean') {
+            updateData.is_published = isPublished;
+            updateData.is_draft = !isPublished;
+            if (isPublished) {
+                updateData.published_at = new Date().toISOString();
+            }
+        }
+
+        const { data: updated, error: updateError } = await supabase
+            .from('app_portfolios')
+            .update(updateData)
+            .eq('id', params.id)
+            .select()
+            .single();
+
+        if (updateError) {
+            console.error('[PORTFOLIO_UPDATE]', updateError);
+            return NextResponse.json({ error: 'Failed to update portfolio' }, { status: 500 });
+        }
+
+        return NextResponse.json(updated);
     } catch (error) {
         console.error('[PORTFOLIO_PUT]', error);
-        return new NextResponse('Internal Error', { status: 500 });
+        return NextResponse.json({ error: 'Internal error' }, { status: 500 });
     }
 }
 
@@ -107,22 +120,24 @@ export async function DELETE(
         const session = await getServerSession(authOptions);
 
         if (!session?.user) {
-            return new NextResponse('Unauthorized', { status: 401 });
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         // Verify ownership and delete
-        const result = await db.query(
-            'DELETE FROM public.app_portfolios WHERE id = $1 AND user_id = $2 RETURNING id',
-            [params.id, session.user.id]
-        );
+        const { error } = await supabase
+            .from('app_portfolios')
+            .delete()
+            .eq('id', params.id)
+            .eq('user_id', session.user.id);
 
-        if (result.rows.length === 0) {
-            return new NextResponse('Portfolio not found or unauthorized', { status: 404 });
+        if (error) {
+            console.error('[PORTFOLIO_DELETE]', error);
+            return NextResponse.json({ error: 'Failed to delete portfolio' }, { status: 500 });
         }
 
-        return new NextResponse(null, { status: 204 });
+        return NextResponse.json({ success: true });
     } catch (error) {
         console.error('[PORTFOLIO_DELETE]', error);
-        return new NextResponse('Internal Error', { status: 500 });
+        return NextResponse.json({ error: 'Internal error' }, { status: 500 });
     }
 }

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { templates, TemplateInfo } from '@/lib/templates';
 import { demoPortfolioData } from '@/lib/types/portfolio';
-import { Eye, Sparkles, Lock, Check } from 'lucide-react';
+import { Eye, Sparkles, Lock, Check, Loader2 } from 'lucide-react';
 import TemplatePreviewModal from '@/components/templates/TemplatePreviewModal';
 
 export default function TemplatesPage() {
@@ -13,6 +13,7 @@ export default function TemplatesPage() {
     const { data: session, status } = useSession();
     const [selectedTemplate, setSelectedTemplate] = useState<TemplateInfo | null>(null);
     const [showPreview, setShowPreview] = useState(false);
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
 
     // Redirect to login if not authenticated
     if (status === 'unauthenticated') {
@@ -20,11 +21,44 @@ export default function TemplatesPage() {
         return null;
     }
 
-    const handleUseTemplate = (template: TemplateInfo) => {
+    const handleUseTemplate = async (template: TemplateInfo) => {
         if (template.isPremium) {
-            // TODO: Check if user has premium subscription
-            // For now, show payment modal
-            alert('Premium template - Payment integration coming soon!');
+            // Check if user has premium subscription
+            const userSubscription = (session?.user as any)?.subscriptionStatus;
+
+            if (userSubscription === 'premium') {
+                // User has premium, allow access
+                router.push(`/builder-new?template=${template.id}`);
+                return;
+            }
+
+            // Redirect to Stripe checkout
+            setIsCheckingOut(true);
+            try {
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        templateId: template.id,
+                        templateName: template.name,
+                        price: 29.99 // Premium template price
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.url) {
+                    // Redirect to Stripe checkout
+                    window.location.href = data.url;
+                } else {
+                    alert('Failed to initiate checkout. Please try again.');
+                    setIsCheckingOut(false);
+                }
+            } catch (error) {
+                console.error('Checkout error:', error);
+                alert('Failed to initiate checkout. Please try again.');
+                setIsCheckingOut(false);
+            }
             return;
         }
 
@@ -36,6 +70,17 @@ export default function TemplatesPage() {
         setSelectedTemplate(template);
         setShowPreview(true);
     };
+
+    if (isCheckingOut) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
+                    <p className="text-xl text-gray-700 dark:text-gray-300">Redirecting to checkout...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
@@ -171,11 +216,11 @@ function TemplateCard({
                 <button
                     onClick={onUse}
                     className={`w-full py-3 rounded-lg font-semibold transition-colors ${template.isPremium
-                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
-                            : 'bg-blue-600 hover:bg-blue-700 text-white'
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white'
+                        : 'bg-blue-600 hover:bg-blue-700 text-white'
                         }`}
                 >
-                    {template.isPremium ? 'Upgrade to Use' : 'Use Template'}
+                    {template.isPremium ? 'Upgrade to Use ($29.99)' : 'Use Template'}
                 </button>
             </div>
         </div>
