@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
-import { db } from '@/lib/db/postgres';
+import { supabase } from '@/lib/db/supabase';
 import { PortfolioData } from '@/lib/types/portfolio';
+import { serializePortfolio } from '@/lib/utils/serialization';
+import ShareButton from '@/components/portfolio/ShareButton';
 
 // Template components (will be created in Phase 3)
 import MinimalProTemplate from '@/components/templates/MinimalProTemplate';
@@ -11,19 +13,18 @@ interface PageProps {
 
 async function getPortfolio(slug: string) {
     try {
-        const result = await db.query(
-            `SELECT id, user_id, slug, data, template_id, is_published, view_count
-       FROM public.app_portfolios 
-       WHERE slug = $1 AND is_published = true
-       LIMIT 1`,
-            [slug]
-        );
+        const { data, error } = await supabase
+            .from('app_portfolios')
+            .select('*')
+            .eq('slug', slug)
+            .eq('is_published', true)
+            .single();
 
-        if (result.rows.length === 0) {
+        if (error || !data) {
             return null;
         }
 
-        return result.rows[0];
+        return data;
     } catch (error) {
         console.error('[GET_PORTFOLIO]', error);
         return null;
@@ -32,17 +33,26 @@ async function getPortfolio(slug: string) {
 
 async function incrementViewCount(slug: string) {
     try {
-        await db.query(
-            'UPDATE public.app_portfolios SET view_count = view_count + 1 WHERE slug = $1',
-            [slug]
-        );
+        const { data: portfolio } = await supabase
+            .from('app_portfolios')
+            .select('view_count')
+            .eq('slug', slug)
+            .single();
+
+        if (portfolio) {
+            await supabase
+                .from('app_portfolios')
+                .update({ view_count: (portfolio.view_count || 0) + 1 })
+                .eq('slug', slug);
+        }
     } catch (error) {
         console.error('[INCREMENT_VIEW]', error);
     }
 }
 
 export async function generateMetadata({ params }: PageProps) {
-    const portfolio = await getPortfolio(params.slug);
+    const { slug } = await params;
+    const portfolio = await getPortfolio(slug);
 
     if (!portfolio) {
         return {
@@ -72,18 +82,25 @@ export async function generateMetadata({ params }: PageProps) {
 }
 
 export default async function PublicPortfolioPage({ params }: PageProps) {
-    const portfolio = await getPortfolio(params.slug);
+    const { slug } = await params;
+    const rawPortfolio = await getPortfolio(slug);
 
-    if (!portfolio) {
+    if (!rawPortfolio) {
         notFound();
     }
 
+    // Serialize portfolio to convert all Date objects to strings
+    const portfolio = serializePortfolio(rawPortfolio);
+
     // Increment view count (async, don't wait)
-    incrementViewCount(params.slug);
+    incrementViewCount(slug);
 
     const data: PortfolioData = typeof portfolio.data === 'string'
         ? JSON.parse(portfolio.data)
         : portfolio.data;
+
+    // Extract ID as separate variable to avoid serializing entire portfolio object
+    const portfolioId = portfolio.id;
 
     // Render template based on template_id
     // For now, we'll use MinimalProTemplate as default
@@ -98,7 +115,7 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
                 dangerouslySetInnerHTML={{
                     __html: `
                         (function() {
-                            const portfolioId = '${portfolio.id}';
+                            const portfolioId = '${portfolioId}';
                             const sessionKey = 'portfolio_session_id';
                             let sessionId = sessionStorage.getItem(sessionKey);
                             
@@ -170,21 +187,8 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
                 }}
             />
 
-            {/* Share buttons */}
-            <div className="fixed bottom-8 right-8 flex gap-2">
-                <button
-                    onClick={() => {
-                        navigator.clipboard.writeText(window.location.href);
-                        alert('Link copied to clipboard!');
-                    }}
-                    className="bg-white dark:bg-gray-800 shadow-lg rounded-full p-3 hover:scale-110 transition-transform"
-                    title="Copy link"
-                >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                </button>
-            </div>
+            {/* Share button */}
+            <ShareButton />
         </div>
     );
 }

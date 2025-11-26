@@ -51,6 +51,35 @@ export default function ModernBuilderPage() {
         }
     }, [status, router]);
 
+    // Load existing portfolio if editing
+    useEffect(() => {
+        const loadPortfolio = async () => {
+            const id = searchParams.get('id');
+            if (!id || !session) return;
+
+            try {
+                const response = await fetch(`/api/portfolios/${id}`);
+                if (response.ok) {
+                    const portfolio = await response.json();
+                    setPortfolioId(portfolio.id);
+                    setCurrentSlug(portfolio.slug);
+
+                    // Parse and set portfolio data
+                    const data = typeof portfolio.data === 'string'
+                        ? JSON.parse(portfolio.data)
+                        : portfolio.data;
+                    setPortfolioData(data);
+                }
+            } catch (error) {
+                console.error('Failed to load portfolio:', error);
+            }
+        };
+
+        if (status === 'authenticated') {
+            loadPortfolio();
+        }
+    }, [searchParams, session, status]);
+
     // Save function for auto-save
     const handleSave = useCallback(async () => {
         if (!session) return;

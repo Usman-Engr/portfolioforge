@@ -5,9 +5,10 @@ import { supabase } from '@/lib/db/supabase';
 
 export async function GET(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const session = await getServerSession(authOptions);
 
         if (!session?.user) {
@@ -17,7 +18,7 @@ export async function GET(
         const { data: portfolio, error } = await supabase
             .from('app_portfolios')
             .select('*')
-            .eq('id', params.id)
+            .eq('id', id)
             .eq('user_id', session.user.id)
             .single();
 
@@ -34,9 +35,10 @@ export async function GET(
 
 export async function PUT(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const session = await getServerSession(authOptions);
 
         if (!session?.user) {
@@ -50,7 +52,7 @@ export async function PUT(
         const { data: existing, error: ownershipError } = await supabase
             .from('app_portfolios')
             .select('id')
-            .eq('id', params.id)
+            .eq('id', id)
             .eq('user_id', session.user.id)
             .single();
 
@@ -64,7 +66,7 @@ export async function PUT(
                 .from('app_portfolios')
                 .select('id')
                 .eq('slug', slug)
-                .neq('id', params.id)
+                .neq('id', id)
                 .maybeSingle();
 
             if (slugError) {
@@ -96,7 +98,7 @@ export async function PUT(
         const { data: updated, error: updateError } = await supabase
             .from('app_portfolios')
             .update(updateData)
-            .eq('id', params.id)
+            .eq('id', id)
             .select()
             .single();
 
@@ -114,9 +116,10 @@ export async function PUT(
 
 export async function DELETE(
     req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         const session = await getServerSession(authOptions);
 
         if (!session?.user) {
@@ -127,7 +130,7 @@ export async function DELETE(
         const { error } = await supabase
             .from('app_portfolios')
             .delete()
-            .eq('id', params.id)
+            .eq('id', id)
             .eq('user_id', session.user.id);
 
         if (error) {

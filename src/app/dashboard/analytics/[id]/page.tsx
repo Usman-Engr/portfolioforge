@@ -24,12 +24,18 @@ interface AnalyticsData {
     recentViews: any[];
 }
 
-export default function AnalyticsPage({ params }: { params: { id: string } }) {
+export default function AnalyticsPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const { data: session, status } = useSession();
     const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [dateRange, setDateRange] = useState('30');
+    const [portfolioId, setPortfolioId] = useState<string>('');
+
+    // Unwrap params Promise
+    useEffect(() => {
+        params.then(p => setPortfolioId(p.id));
+    }, [params]);
 
     useEffect(() => {
         if (status === 'unauthenticated') {
@@ -37,15 +43,15 @@ export default function AnalyticsPage({ params }: { params: { id: string } }) {
             return;
         }
 
-        if (status === 'authenticated') {
+        if (status === 'authenticated' && portfolioId) {
             loadAnalytics();
         }
-    }, [status, dateRange, params.id]);
+    }, [status, dateRange, portfolioId]);
 
     const loadAnalytics = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(`/api/analytics/${params.id}?range=${dateRange}`);
+            const response = await fetch(`/api/analytics/${portfolioId}?range=${dateRange}`);
 
             if (!response.ok) {
                 throw new Error('Failed to load analytics');
@@ -80,7 +86,7 @@ export default function AnalyticsPage({ params }: { params: { id: string } }) {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `analytics-${params.id}-${new Date().toISOString().split('T')[0]}.csv`;
+        a.download = `analytics-${portfolioId}-${new Date().toISOString().split('T')[0]}.csv`;
         a.click();
         window.URL.revokeObjectURL(url);
     };

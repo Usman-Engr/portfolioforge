@@ -25,14 +25,6 @@ export default function PublishModal({
     const [isPublishing, setIsPublishing] = useState(false);
     const [error, setError] = useState('');
 
-    // Auto-generate slug from portfolio name
-    useEffect(() => {
-        if (!currentSlug && portfolioName) {
-            const generated = sanitizeSlug(portfolioName);
-            setSlug(generated);
-        }
-    }, [portfolioName, currentSlug]);
-
     // Check slug availability
     useEffect(() => {
         if (!slug || slug === currentSlug) {
