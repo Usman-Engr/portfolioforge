@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { Plus, Eye, Edit, Trash2, ExternalLink, Copy, Loader2, MoreVertical, Activity, Settings } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, ExternalLink, Copy, Loader2, Activity, Settings } from 'lucide-react';
+import ConfirmModal from '@/components/ui/ConfirmModal';
+import LoadingOverlay from '@/components/ui/LoadingOverlay';
 
 interface Portfolio {
     id: string;
@@ -22,6 +24,9 @@ export default function DashboardPage() {
     const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
     const [loading, setLoading] = useState(true);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [publishingId, setPublishingId] = useState<string | null>(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [portfolioToDelete, setPortfolioToDelete] = useState<Portfolio | null>(null);
 
     useEffect(() => {
         if (status === 'unauthenticated') {
@@ -48,21 +53,28 @@ export default function DashboardPage() {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this portfolio? This action cannot be undone.')) {
-            return;
-        }
+    const handleDelete = async (portfolio: Portfolio) => {
+        setPortfolioToDelete(portfolio);
+        setShowDeleteModal(true);
+    };
 
-        setDeletingId(id);
+    const confirmDelete = async () => {
+        if (!portfolioToDelete) return;
+
+        setDeletingId(portfolioToDelete.id);
         try {
-            const response = await fetch(`/api/portfolios/${id}`, {
+            const response = await fetch(`/api/portfolios/${portfolioToDelete.id}`, {
                 method: 'DELETE',
             });
 
             if (response.ok) {
-                setPortfolios(portfolios.filter(p => p.id !== id));
+                setPortfolios(portfolios.filter(p => p.id !== portfolioToDelete.id));
+                setShowDeleteModal(false);
+                setPortfolioToDelete(null);
             } else {
-                alert('Failed to delete portfolio');
+                const error = await response.json();
+                console.error('Delete error:', error);
+                alert('Failed to delete portfolio: ' + (error.error || 'Unknown error'));
             }
         } catch (error) {
             console.error('Delete error:', error);
@@ -73,21 +85,31 @@ export default function DashboardPage() {
     };
 
     const handleTogglePublish = async (portfolio: Portfolio) => {
+        setPublishingId(portfolio.id);
         try {
             const response = await fetch(`/api/portfolios/${portfolio.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    ...portfolio,
-                    is_published: !portfolio.is_published,
+                    slug: portfolio.slug,
+                    data: portfolio.data,
+                    templateId: portfolio.template_id,
+                    isPublished: !portfolio.is_published,
                 }),
             });
 
             if (response.ok) {
-                loadPortfolios();
+                await loadPortfolios();
+            } else {
+                const error = await response.json();
+                console.error('Toggle publish error:', error);
+                alert('Failed to toggle publish status: ' + (error.error || 'Unknown error'));
             }
         } catch (error) {
             console.error('Toggle publish error:', error);
+            alert('Failed to toggle publish status');
+        } finally {
+            setPublishingId(null);
         }
     };
 
@@ -196,8 +218,8 @@ export default function DashboardPage() {
                             <PortfolioCard
                                 key={portfolio.id}
                                 portfolio={portfolio}
-                                onEdit={() => router.push(`/builder-new?portfolioId=${portfolio.id}`)}
-                                onDelete={() => handleDelete(portfolio.id)}
+                                onEdit={() => router.push(`/builder-new?id=${portfolio.id}`)}
+                                onDelete={() => handleDelete(portfolio)}
                                 onTogglePublish={() => handleTogglePublish(portfolio)}
                                 onDuplicate={() => handleDuplicate(portfolio)}
                                 onCopyLink={() => copyLink(portfolio.slug)}
@@ -207,6 +229,27 @@ export default function DashboardPage() {
                     </div>
                 )}
             </div>
+
+            {/* Modals */}
+            <ConfirmModal
+                isOpen={showDeleteModal}
+                onClose={() => {
+                    setShowDeleteModal(false);
+                    setPortfolioToDelete(null);
+                }}
+                onConfirm={confirmDelete}
+                title="Delete Portfolio"
+                message={`Are you sure you want to delete "${portfolioToDelete?.data?.personal?.name || 'this portfolio'}"? This action cannot be undone.`}
+                confirmText="Delete"
+                cancelText="Cancel"
+                isDestructive={true}
+                isLoading={deletingId !== null}
+            />
+
+            <LoadingOverlay
+                isVisible={publishingId !== null}
+                message="Updating portfolio..."
+            />
         </div>
     );
 }
@@ -244,8 +287,6 @@ function PortfolioCard({
     onCopyLink: () => void;
     isDeleting: boolean;
 }) {
-    const [showMenu, setShowMenu] = useState(false);
-
     return (
         <div className="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg transition-all border border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* Thumbnail */}
@@ -267,74 +308,6 @@ function PortfolioCard({
                         <span className="px-3 py-1 bg-gray-500 text-white rounded-full text-xs font-semibold">
                             Draft
                         </span>
-                    )}
-                </div>
-
-                {/* Actions Menu */}
-                <div className="absolute top-4 right-4">
-                    <button
-                        onClick={() => setShowMenu(!showMenu)}
-                        className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                    >
-                        <MoreVertical className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-                    </button>
-
-                    {showMenu && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-10">
-                            <button
-                                onClick={() => { onEdit(); setShowMenu(false); }}
-                                className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                            >
-                                <Edit className="w-4 h-4" />
-                                Edit
-                            </button>
-                            <button
-                                onClick={() => { window.location.href = `/dashboard/settings/${portfolio.id}`; setShowMenu(false); }}
-                                className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                            >
-                                <Settings className="w-4 h-4" />
-                                Settings
-                            </button>
-                            <button
-                                onClick={() => { window.location.href = `/dashboard/analytics/${portfolio.id}`; setShowMenu(false); }}
-                                className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                            >
-                                <Activity className="w-4 h-4" />
-                                View Analytics
-                            </button>
-                            <button
-                                onClick={() => { onDuplicate(); setShowMenu(false); }}
-                                className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                            >
-                                <Copy className="w-4 h-4" />
-                                Duplicate
-                            </button>
-                            <button
-                                onClick={() => { onTogglePublish(); setShowMenu(false); }}
-                                className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
-                            >
-                                <ExternalLink className="w-4 h-4" />
-                                {portfolio.is_published ? 'Unpublish' : 'Publish'}
-                            </button>
-                            <hr className="my-2 border-gray-200 dark:border-gray-700" />
-                            <button
-                                onClick={() => { onDelete(); setShowMenu(false); }}
-                                disabled={isDeleting}
-                                className="w-full px-4 py-2 text-left hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-2 disabled:opacity-50"
-                            >
-                                {isDeleting ? (
-                                    <>
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                        Deleting...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Trash2 className="w-4 h-4" />
-                                        Delete
-                                    </>
-                                )}
-                            </button>
-                        </div>
                     )}
                 </div>
             </div>
@@ -360,23 +333,57 @@ function PortfolioCard({
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2">
-                    <button
-                        onClick={onEdit}
-                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-                    >
-                        <Edit className="w-4 h-4" />
-                        Edit
-                    </button>
-                    {portfolio.is_published && (
+                <div className="flex flex-col gap-2">
+                    {/* Primary Actions */}
+                    <div className="flex gap-2">
                         <button
-                            onClick={onCopyLink}
-                            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                            title="Copy link"
+                            onClick={onEdit}
+                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 font-medium"
                         >
-                            <Copy className="w-4 h-4" />
+                            <Edit className="w-4 h-4" />
+                            Edit
                         </button>
-                    )}
+                        {portfolio.is_published && (
+                            <button
+                                onClick={onCopyLink}
+                                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+                                title="Copy link"
+                            >
+                                <Copy className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Secondary Actions */}
+                    <div className="grid grid-cols-2 gap-2">
+                        <button
+                            onClick={onTogglePublish}
+                            className={`px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm font-medium ${portfolio.is_published
+                                    ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50'
+                                    : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50'
+                                }`}
+                        >
+                            <ExternalLink className="w-4 h-4" />
+                            {portfolio.is_published ? 'Unpublish' : 'Publish'}
+                        </button>
+                        <button
+                            onClick={onDelete}
+                            disabled={isDeleting}
+                            className="px-3 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors flex items-center justify-center gap-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isDeleting ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Deleting...
+                                </>
+                            ) : (
+                                <>
+                                    <Trash2 className="w-4 h-4" />
+                                    Delete
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
