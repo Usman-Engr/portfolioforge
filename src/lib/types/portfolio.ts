@@ -15,12 +15,16 @@ export interface PersonalInfo {
     location: string;
     bio: string;
     avatar?: string;
+    avatarUrl?: string; // Adding this for consistency with the builder
 }
 
 export interface ContactInfo {
     email: string;
     phone?: string;
     website?: string;
+    linkedin?: string;
+    github?: string;
+    twitter?: string;
 }
 
 export interface SocialLinks {
@@ -28,24 +32,28 @@ export interface SocialLinks {
     github?: string;
     twitter?: string;
     instagram?: string;
-    [key: string]: string | undefined; // Allow custom links
+    [key: string]: string | undefined;
 }
 
 export interface Skill {
+    id?: string;
     name: string;
     level: number; // 1-5
 }
 
 export interface Project {
+    id?: string;
     name: string;
     description: string;
     techStack: string[];
     liveUrl?: string;
     githubUrl?: string;
     images?: string[];
+    imageUrl?: string; // Supporting single image
 }
 
 export interface Experience {
+    id?: string;
     company: string;
     role: string;
     duration: string;
@@ -53,6 +61,7 @@ export interface Experience {
 }
 
 export interface Education {
+    id?: string;
     institution: string;
     degree: string;
     year: string;

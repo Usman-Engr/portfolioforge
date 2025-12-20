@@ -1,186 +1,194 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { motion, AnimatePresence } from "framer-motion";
+import { Zap, Shield, Mail, Lock, Loader2, ArrowRight } from "lucide-react";
 
 export default function LoginPage() {
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { status } = useSession();
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
-        setIsLoading(true);
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push(callbackUrl);
+    }
+  }, [status, router, callbackUrl]);
 
-        try {
-            const result = await signIn('credentials', {
-                email,
-                password,
-                redirect: false,
-            });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
-            if (result?.error) {
-                setError('Invalid email or password');
-            } else {
-                router.push(callbackUrl);
-                router.refresh();
-            }
-        } catch (error) {
-            setError('An error occurred. Please try again.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
 
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-4">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="w-full max-w-md"
-            >
-                {/* Logo/Brand */}
-                <div className="text-center mb-8">
-                    <Link href="/">
-                        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                            PortfolioForge
-                        </h1>
-                    </Link>
-                    <p className="text-gray-600 dark:text-gray-400 mt-2">
-                        Welcome back! Sign in to your account
-                    </p>
-                </div>
+      if (result?.error) {
+        setError("Invalid credentials. Check your email and password.");
+      } else {
+        // Smooth transition to dashboard
+        router.push(callbackUrl);
+        router.refresh();
+      }
+    } catch (error) {
+      setError("System error. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-                {/* Login Card */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Error Message */}
-                        {error && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm"
-                            >
-                                {error}
-                            </motion.div>
-                        )}
+  return (
+    <div className="min-h-screen relative flex items-center justify-center bg-[#050505] overflow-hidden selection:bg-blue-500/30">
+      {/* Background Decorative Elements */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-600/10 rounded-full blur-[120px]" />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-50 contrast-150" />
+      </div>
 
-                        {/* Email Field */}
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Email Address
-                            </label>
-                            <Input
-                                id="email"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="you@example.com"
-                                required
-                                className="w-full"
-                            />
-                        </div>
-
-                        {/* Password Field */}
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Password
-                            </label>
-                            <Input
-                                id="password"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="••••••••"
-                                required
-                                className="w-full"
-                            />
-                        </div>
-
-                        {/* Remember Me & Forgot Password */}
-                        <div className="flex items-center justify-between">
-                            <label className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                />
-                                <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                                    Remember me
-                                </span>
-                            </label>
-                            <Link
-                                href="/auth/forgot-password"
-                                className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                            >
-                                Forgot password?
-                            </Link>
-                        </div>
-
-                        {/* Submit Button */}
-                        <Button
-                            type="submit"
-                            disabled={isLoading}
-                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3"
-                        >
-                            {isLoading ? (
-                                <span className="flex items-center justify-center">
-                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    Signing in...
-                                </span>
-                            ) : (
-                                'Sign In'
-                            )}
-                        </Button>
-                    </form>
-
-                    {/* Divider */}
-                    <div className="relative my-6">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-                        </div>
-                        <div className="relative flex justify-center text-sm">
-                            <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">
-                                Don't have an account?
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Sign Up Link */}
-                    <Link href="/auth/signup">
-                        <Button
-                            variant="outline"
-                            className="w-full border-2 border-gray-300 dark:border-gray-600 hover:border-blue-600 dark:hover:border-blue-500"
-                        >
-                            Create Account
-                        </Button>
-                    </Link>
-                </div>
-
-                {/* Back to Home */}
-                <div className="text-center mt-6">
-                    <Link
-                        href="/"
-                        className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
-                    >
-                        ← Back to Home
-                    </Link>
-                </div>
-            </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-[440px] px-6 relative z-10"
+      >
+        {/* Branding */}
+        <div className="text-center mb-10">
+          <Link href="/" className="inline-flex items-center gap-2 group">
+            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:rotate-12 transition-transform duration-500">
+              <Zap className="w-6 h-6 text-white fill-current" />
+            </div>
+            <h1 className="text-3xl font-black text-white tracking-tighter">
+              PortfolioForge
+              <span className="text-blue-500 text-6xl leading-[0]">.</span>
+            </h1>
+          </Link>
+          <p className="text-gray-400 mt-4 font-medium tracking-tight">
+            Continue your creative journey.
+          </p>
         </div>
-    );
+
+        {/* Login Container */}
+        <div className="bg-[#121212]/50 backdrop-blur-2xl border border-white/10 rounded-[32px] p-8 shadow-2xl">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-3 rounded-2xl text-sm font-medium flex items-center gap-2"
+                >
+                  <Shield className="w-4 h-4 flex-shrink-0" />
+                  {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Email */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest ml-1">
+                Email Address
+              </label>
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="studio@example.com"
+                  required
+                  className="bg-white/5 border-white/10 text-white pl-12 h-[56px] rounded-2xl focus:border-blue-500/50 focus:ring-blue-500/10 transition-all placeholder:text-gray-600 font-medium"
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between ml-1">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                  Password
+                </label>
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-[10px] uppercase tracking-wider font-black text-blue-500 hover:text-blue-400 transition-colors"
+                >
+                  Reforging Required?
+                </Link>
+              </div>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="bg-white/5 border-white/10 text-white pl-12 h-[56px] rounded-2xl focus:border-blue-500/50 focus:ring-blue-500/10 transition-all placeholder:text-gray-600 font-medium"
+                />
+              </div>
+            </div>
+
+            {/* Remember & Sign In */}
+            <div className="pt-2">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-[56px] rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-base shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Initialising Session...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Enter the Studio</span>
+                    <ArrowRight className="w-5 h-5" />
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+
+          <div className="mt-8 pt-8 border-t border-white/5 text-center">
+            <p className="text-sm text-gray-500 font-medium">
+              New to the Forge?{" "}
+              <Link
+                href="/auth/signup"
+                className="text-white hover:text-blue-500 font-bold underline decoration-blue-500/30 underline-offset-4 transition-colors"
+              >
+                Create Studio Account
+              </Link>
+            </p>
+          </div>
+        </div>
+
+        {/* Footer Link */}
+        <div className="text-center mt-8">
+          <Link
+            href="/"
+            className="text-xs font-bold text-gray-600 hover:text-gray-400 uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+          >
+            Return to Sanctuary
+          </Link>
+        </div>
+      </motion.div>
+    </div>
+  );
 }

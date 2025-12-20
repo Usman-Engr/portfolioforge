@@ -44,6 +44,7 @@ export default function TrafficSources({ data, isLoading }: TrafficSourcesProps)
             <ResponsiveContainer width="100%" height={320}>
                 <PieChart>
                     <Pie
+                        // @ts-ignore - Recharts type mismatch
                         data={data}
                         cx="50%"
                         cy="50%"

@@ -1,98 +1,108 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/Button';
-import { Sparkles, Zap, Globe, Lock } from 'lucide-react';
+import React from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/Button";
+import {
+  Sparkles,
+  Zap,
+  Globe,
+  Lock,
+  ArrowRight,
+  Play,
+  Layout,
+  Star,
+} from "lucide-react";
 
 export const Hero = () => {
-    return (
-        <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-blue-900 pt-16">
-            {/* Animated background elements */}
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse" />
-                <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-pink-400/20 to-blue-400/20 rounded-full blur-3xl animate-pulse delay-1000" />
+  return (
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#050505] pt-16">
+      {/* Cinematic Background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-blue-600/10 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[70%] h-[70%] bg-purple-600/10 rounded-full blur-[120px] animate-pulse delay-700" />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div className="text-center space-y-12">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {/* Status Badge */}
+            <div className="inline-flex items-center gap-2 px-6 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full mb-10 shadow-2xl">
+              <Sparkles className="w-4 h-4 text-blue-400 fill-current" />
+              <span className="text-xs font-black uppercase tracking-[0.2em] text-white/80">
+                The Future of Personal Branding
+              </span>
             </div>
 
-            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                >
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-full mb-6 shadow-lg">
-                        <Sparkles className="w-4 h-4 text-purple-600" />
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            No coding required
-                        </span>
-                    </div>
+            {/* Title */}
+            <h1 className="text-6xl md:text-9xl font-black mb-10 tracking-tighter text-white leading-[0.9]">
+              DESIGN FOR <br />
+              <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent italic">
+                DISTINCTION.
+              </span>
+            </h1>
 
-                    <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                        Build Your Portfolio
-                        <br />
-                        In Minutes
-                    </h1>
-
-                    <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-10 max-w-3xl mx-auto">
-                        Create a stunning professional portfolio with just a few clicks.
-                        No design skills needed. Choose a template, fill in your details, and share your unique link.
-                    </p>
-
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-                        <Link href="/builder">
-                            <Button size="lg" className="text-lg px-8 py-4">
-                                Get Started Free
-                            </Button>
-                        </Link>
-                        <Link href="/p/demo">
-                            <Button variant="ghost" size="lg" className="text-lg">
-                                View Examples
-                            </Button>
-                        </Link>
-                    </div>
-
-                    {/* Feature highlights */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                        className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto"
-                    >
-                        <FeatureCard
-                            icon={<Zap className="w-6 h-6" />}
-                            title="Lightning Fast"
-                            description="Create your portfolio in under 5 minutes"
-                        />
-                        <FeatureCard
-                            icon={<Globe className="w-6 h-6" />}
-                            title="Instant Sharing"
-                            description="Get a shareable link immediately"
-                        />
-                        <FeatureCard
-                            icon={<Lock className="w-6 h-6" />}
-                            title="Always Yours"
-                            description="Edit and update anytime you want"
-                        />
-                    </motion.div>
-                </motion.div>
-            </div>
-        </section>
-    );
-};
-
-const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) => {
-    return (
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white mb-4 mx-auto">
-                {icon}
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                {title}
-            </h3>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-                {description}
+            <p className="text-xl md:text-2xl text-gray-400 mb-12 max-w-3xl mx-auto font-medium leading-relaxed">
+              Stop using generic builders. Experience the first cinematic
+              portfolio engine designed for creators who demand high-fidelity
+              results in minutes.
             </p>
+
+            {/* CTA Cluster */}
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <Link href="/auth/signup">
+                <Button
+                  size="lg"
+                  className="h-16 px-10 rounded-2xl bg-white text-black hover:bg-gray-200 font-black text-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-3"
+                >
+                  <Zap className="w-5 h-5 fill-current" />
+                  Launch Your Studio
+                </Button>
+              </Link>
+              <Link href="/templates">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="h-16 px-10 rounded-2xl border-white/10 text-white hover:bg-white/5 font-black text-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-3"
+                >
+                  <Play className="w-4 h-4 fill-current ml-1" />
+                  Browse Gallery
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+
+          {/* Impact Bar */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, delay: 0.4 }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-20 max-w-4xl mx-auto"
+          >
+            <Metric item="10k+" sub="Active Creators" />
+            <Metric item="0.2s" sub="Load Speeds" />
+            <Metric item="24/7" sub="AI Support" />
+            <Metric item="4K" sub="Image Quality" />
+          </motion.div>
         </div>
-    );
+      </div>
+    </section>
+  );
 };
+
+const Metric = ({ item, sub }: { item: string; sub: string }) => (
+  <div className="text-center group">
+    <div className="text-3xl font-black text-white group-hover:text-blue-400 transition-colors">
+      {item}
+    </div>
+    <div className="text-[10px] uppercase font-black tracking-widest text-gray-600 mt-1">
+      {sub}
+    </div>
+  </div>
+);

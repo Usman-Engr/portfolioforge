@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 // Protected routes that require authentication
-const protectedRoutes = ['/dashboard', '/builder', '/templates'];
+const protectedRoutes = ['/dashboard', '/builder'];
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -14,9 +14,13 @@ export async function middleware(request: NextRequest) {
     );
 
     if (isProtectedRoute) {
+        // Use process.env.NEXTAUTH_SECRET or a fallback for development
+        // WARNING: In production, always ensure NEXTAUTH_SECRET is set in environment vars.
+        const secret = process.env.NEXTAUTH_SECRET || 'development_secret_reforge_2025';
+        
         const token = await getToken({
             req: request,
-            secret: process.env.NEXTAUTH_SECRET,
+            secret: secret,
         });
 
         if (!token) {
@@ -31,5 +35,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/dashboard/:path*', '/builder/:path*', '/templates/:path*'],
+    matcher: ['/dashboard/:path*', '/builder/:path*'],
 };
