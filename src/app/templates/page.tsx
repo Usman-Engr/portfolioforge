@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import TemplatePreviewModal from "@/components/templates/TemplatePreviewModal";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 export default function TemplatesPage() {
   const router = useRouter();
@@ -57,11 +58,14 @@ export default function TemplatesPage() {
         if (data.url) {
           window.location.href = data.url;
         } else {
-          alert("Checkout system offline. Please try again.");
+          toast.error("Checkout Unavailable", {
+            description: "The payment gateway is currently offline.",
+          });
           setIsCheckingOut(false);
         }
       } catch (error) {
         console.error("Checkout error:", error);
+        toast.error("An error occurred during transaction setup.");
         setIsCheckingOut(false);
       }
       return;
@@ -111,7 +115,7 @@ export default function TemplatesPage() {
           </div>
           <h1 className="text-6xl md:text-8xl font-black tracking-tighter mb-8 italic">
             SELECT YOUR <br />
-            <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent underline decoration-purple-500/20 underline-offset-8 transition-all hover:tracking-widest duration-700">
+            <span className="bg-linear-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent underline decoration-purple-500/20 underline-offset-8 transition-all hover:tracking-widest duration-700">
               STUDIO BASE.
             </span>
           </h1>
@@ -164,7 +168,7 @@ export default function TemplatesPage() {
                   <h2 className="text-4xl font-black tracking-tight">
                     Signature Series
                   </h2>
-                  <div className="px-3 py-1 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg text-[10px] font-black uppercase tracking-widest text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+                  <div className="px-3 py-1 bg-linear-to-r from-purple-500 to-blue-500 rounded-lg text-[10px] font-black uppercase tracking-widest text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]">
                     Pro
                   </div>
                 </div>
@@ -237,7 +241,7 @@ function TemplateCard({
       {/* Visual Header */}
       <div className="relative h-80 overflow-hidden bg-gray-900">
         <div
-          className={`absolute inset-0 bg-gradient-to-br ${
+          className={`absolute inset-0 bg-linear-to-br ${
             isPremium
               ? "from-purple-900/30 to-blue-900/30"
               : "from-gray-800 to-gray-900"
@@ -293,7 +297,7 @@ function TemplateCard({
       </div>
 
       {/* Information Body */}
-      <div className="p-10 flex-grow flex flex-col">
+      <div className="p-10 grow flex flex-col">
         <div className="mb-6">
           <h3 className="text-3xl font-black italic tracking-tighter group-hover:text-purple-400 transition-colors mb-2 uppercase">
             {template.name}
@@ -316,7 +320,7 @@ function TemplateCard({
         </div>
 
         <div className="mt-10 pt-8 border-t border-white/5 flex items-center justify-between">
-          <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest uppercase">
+          <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
             {isPremium ? "Signature Range 01" : "Essential Range 01"}
           </div>
           <button

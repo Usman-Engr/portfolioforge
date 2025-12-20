@@ -26,7 +26,7 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[100] bg-black/50 backdrop-blur-2xl border-b border-white/5">
+    <nav className="fixed top-0 left-0 right-0 z-100 bg-black/50 backdrop-blur-2xl border-b border-white/5">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
@@ -62,7 +62,7 @@ export const Navbar = () => {
                     onClick={() => setShowUserMenu(!showUserMenu)}
                     className="flex items-center gap-3 pl-2 pr-4 py-1.5 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-all group"
                   >
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-black text-xs">
+                    <div className="w-8 h-8 rounded-full bg-linear-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-black text-xs">
                       {session?.user?.name?.[0]?.toUpperCase() ||
                         session?.user?.email?.[0]?.toUpperCase() ||
                         "C"}
@@ -78,7 +78,7 @@ export const Navbar = () => {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
-                        className="absolute right-0 mt-4 w-64 bg-[#121212] border border-white/10 rounded-[24px] shadow-2xl p-2 z-[110]"
+                        className="absolute right-0 mt-4 w-64 bg-[#121212] border border-white/10 rounded-[24px] shadow-2xl p-2 z-110"
                       >
                         <div className="px-5 py-4 border-b border-white/5 mb-2">
                           <p className="text-xs font-black text-gray-500 uppercase tracking-widest mb-1">

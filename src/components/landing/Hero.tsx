@@ -43,7 +43,7 @@ export const Hero = () => {
             {/* Title */}
             <h1 className="text-6xl md:text-9xl font-black mb-10 tracking-tighter text-white leading-[0.9]">
               DESIGN FOR <br />
-              <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent italic">
+              <span className="bg-linear-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent italic">
                 DISTINCTION.
               </span>
             </h1>

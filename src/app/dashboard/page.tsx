@@ -15,10 +15,13 @@ import {
   Layout,
   Globe,
   Settings,
+  Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import LoadingOverlay from "@/components/ui/LoadingOverlay";
+import IntelligenceModal from "@/components/dashboard/IntelligenceModal";
+import { toast } from "sonner";
 
 interface Portfolio {
   id: string;
@@ -39,6 +42,9 @@ export default function DashboardPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [publishingId, setPublishingId] = useState<string | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showIntelligenceModal, setShowIntelligenceModal] = useState(false);
+  const [intelligencePortfolio, setIntelligencePortfolio] =
+    useState<Portfolio | null>(null);
   const [portfolioToDelete, setPortfolioToDelete] = useState<Portfolio | null>(
     null
   );
@@ -92,9 +98,13 @@ export default function DashboardPage() {
         setPortfolios(portfolios.filter((p) => p.id !== portfolioToDelete.id));
         setShowDeleteModal(false);
         setPortfolioToDelete(null);
+        toast.success("Project archived successfully.");
+      } else {
+        toast.error("Failed to archive project.");
       }
     } catch (error) {
       console.error("Delete error:", error);
+      toast.error("A system error occurred during archiving.");
     } finally {
       setDeletingId(null);
     }
@@ -116,9 +126,22 @@ export default function DashboardPage() {
 
       if (response.ok) {
         await loadPortfolios();
+        toast.success(
+          portfolio.is_published
+            ? "Project taken offline."
+            : "Project published live!",
+          {
+            description: portfolio.is_published
+              ? "Visibility has been restricted."
+              : "Your site is now accessible to the world.",
+          }
+        );
+      } else {
+        toast.error("Failed to update project status.");
       }
     } catch (error) {
       console.error("Toggle publish error:", error);
+      toast.error("Network error while syncing status.");
     } finally {
       setPublishingId(null);
     }
@@ -127,6 +150,9 @@ export default function DashboardPage() {
   const copyLink = (slug: string) => {
     const url = `${window.location.origin}/p/${slug}`;
     navigator.clipboard.writeText(url);
+    toast.success("Link copied to clipboard!", {
+      description: "You've captured the studio entry key.",
+    });
   };
 
   if (status === "loading" || loading) {
@@ -160,7 +186,7 @@ export default function DashboardPage() {
             </div>
             <h1 className="text-5xl font-extrabold tracking-tight">
               {greeting},{" "}
-              <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
                 {session?.user?.name || "Creator"}
               </span>
             </h1>
@@ -217,7 +243,7 @@ export default function DashboardPage() {
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-gray-900 to-black border border-gray-800 p-12 text-center"
+              className="relative overflow-hidden rounded-3xl bg-linear-to-b from-gray-900 to-black border border-gray-800 p-12 text-center"
             >
               <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500 rounded-full blur-[120px]" />
@@ -256,6 +282,10 @@ export default function DashboardPage() {
                   onDelete={() => handleDelete(portfolio)}
                   onTogglePublish={() => handleTogglePublish(portfolio)}
                   onCopyLink={() => copyLink(portfolio.slug)}
+                  onViewStats={() => {
+                    setIntelligencePortfolio(portfolio);
+                    setShowIntelligenceModal(true);
+                  }}
                   isDeleting={deletingId === portfolio.id}
                 />
               ))}
@@ -286,6 +316,17 @@ export default function DashboardPage() {
         isVisible={publishingId !== null}
         message="Syncing with cloud..."
       />
+
+      <IntelligenceModal
+        isOpen={showIntelligenceModal}
+        onClose={() => {
+          setShowIntelligenceModal(false);
+          setIntelligencePortfolio(null);
+        }}
+        portfolioName={
+          intelligencePortfolio?.data?.personal?.name || "Concept Studio"
+        }
+      />
     </div>
   );
 }
@@ -311,7 +352,7 @@ function StatCard({
 
   return (
     <div
-      className={`bg-gradient-to-br ${colorMap[color]} border rounded-2xl p-6 backdrop-blur-sm`}
+      className={`bg-linear-to-br ${colorMap[color]} border rounded-2xl p-6 backdrop-blur-sm`}
     >
       <div className="flex items-center justify-between mb-4">
         <div className="p-2 bg-gray-900 rounded-lg border border-gray-800">
@@ -344,6 +385,7 @@ function PortfolioCard({
   onDelete,
   onTogglePublish,
   onCopyLink,
+  onViewStats,
   isDeleting,
 }: {
   portfolio: Portfolio;
@@ -352,6 +394,7 @@ function PortfolioCard({
   onDelete: () => void;
   onTogglePublish: () => void;
   onCopyLink: () => void;
+  onViewStats: () => void;
   isDeleting: boolean;
 }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -368,7 +411,7 @@ function PortfolioCard({
       {/* Project Preview Area */}
       <div className="relative h-64 bg-gray-900 overflow-hidden">
         <div
-          className={`absolute inset-0 bg-gradient-to-br from-blue-600/20 to-purple-600/20 transition-opacity duration-500 ${
+          className={`absolute inset-0 bg-linear-to-br from-blue-600/20 to-purple-600/20 transition-opacity duration-500 ${
             isHovered ? "opacity-100" : "opacity-40"
           }`}
         />
@@ -433,6 +476,14 @@ function PortfolioCard({
               Impressions
             </span>
           </div>
+          <motion.button
+            whileHover={{ scale: 1.1, rotate: 10 }}
+            onClick={onViewStats}
+            className="p-3 bg-blue-600/10 text-blue-500 rounded-2xl border border-blue-500/20 hover:bg-blue-600 hover:text-white transition-all shadow-lg"
+            title="Prism Intelligence"
+          >
+            <Sparkles className="w-5 h-5 fill-current" />
+          </motion.button>
         </div>
 
         <div className="grid grid-cols-2 gap-3">

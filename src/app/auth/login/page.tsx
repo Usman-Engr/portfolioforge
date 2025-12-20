@@ -75,7 +75,7 @@ export default function LoginPage() {
             </div>
             <h1 className="text-3xl font-black text-white tracking-tighter">
               PortfolioForge
-              <span className="text-blue-500 text-6xl leading-[0]">.</span>
+              <span className="text-blue-500 text-6xl leading-0">.</span>
             </h1>
           </Link>
           <p className="text-gray-400 mt-4 font-medium tracking-tight">
@@ -94,7 +94,7 @@ export default function LoginPage() {
                   exit={{ opacity: 0, height: 0 }}
                   className="bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-3 rounded-2xl text-sm font-medium flex items-center gap-2"
                 >
-                  <Shield className="w-4 h-4 flex-shrink-0" />
+                  <Shield className="w-4 h-4 shrink-0" />
                   {error}
                 </motion.div>
               )}

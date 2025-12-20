@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/ui/Navbar";
 import { Providers } from "@/components/Providers";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -11,7 +12,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "PortfolioForge - Build Your Portfolio in Minutes",
-  description: "Create a stunning professional portfolio with just a few clicks. No design skills needed.",
+  description:
+    "Create a stunning professional portfolio with just a few clicks. No design skills needed.",
 };
 
 export default function RootLayout({
@@ -21,10 +23,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${inter.variable} font-sans antialiased`}
-      >
+      <body className={`${inter.variable} font-sans antialiased`}>
         <Providers>
+          <Toaster position="bottom-right" theme="dark" richColors />
           <Navbar />
           {children}
         </Providers>
