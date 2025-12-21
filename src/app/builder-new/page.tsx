@@ -53,7 +53,9 @@ type BuilderSection =
   | "contact"
   | "social";
 
-export default function ModernBuilderPage() {
+import { Suspense } from "react";
+
+function BuilderContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
@@ -199,17 +201,6 @@ export default function ModernBuilderPage() {
       throw new Error(error.message || "Failed to publish portfolio");
     }
   };
-
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
-          <p className="text-slate-400 font-medium">Entering Studio...</p>
-        </div>
-      </div>
-    );
-  }
 
   const sections = [
     { id: "personal", label: "Identity", icon: User },
@@ -492,6 +483,23 @@ export default function ModernBuilderPage() {
         portfolioName={portfolioData.personal.name}
       />
     </div>
+  );
+}
+
+export default function ModernBuilderPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-slate-950">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
+            <p className="text-slate-400 font-medium">Entering Studio...</p>
+          </div>
+        </div>
+      }
+    >
+      <BuilderContent />
+    </Suspense>
   );
 }
 

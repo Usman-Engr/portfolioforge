@@ -1,14 +1,12 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/ui/Navbar";
 import { Providers } from "@/components/Providers";
 import { Toaster } from "sonner";
 
-const inter = Inter({
-  subsets: ["latin"],
+const inter = {
   variable: "--font-inter",
-});
+};
 
 export const metadata: Metadata = {
   title: "PortfolioForge - Build Your Portfolio in Minutes",

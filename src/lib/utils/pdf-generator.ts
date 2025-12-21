@@ -77,7 +77,7 @@ export const downloadPortfolioAsPDF = async (elementId: string, fileName: string
               
               if (val && colorFunctionRegex.test(val)) {
                   // If it's a gradient or complex string, replace each occurrence
-                  const newVal = val.replace(colorFunctionRegex, (match) => {
+                  const newVal = val.replace(colorFunctionRegex, (match: string) => {
                       return resolveColorToRgba(match);
                   });
                   

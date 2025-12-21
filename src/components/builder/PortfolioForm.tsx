@@ -119,10 +119,11 @@ export const PortfolioForm: React.FC<PortfolioFormProps> = ({
   };
 
   const updateProject = (
-    id: string,
+    id: string | undefined,
     field: string,
     value: string | string[]
   ) => {
+    if (!id) return;
     setFormData({
       ...formData,
       data: {
@@ -134,7 +135,8 @@ export const PortfolioForm: React.FC<PortfolioFormProps> = ({
     });
   };
 
-  const removeProject = (id: string) => {
+  const removeProject = (id: string | undefined) => {
+    if (!id) return;
     setFormData({
       ...formData,
       data: {
@@ -184,7 +186,12 @@ export const PortfolioForm: React.FC<PortfolioFormProps> = ({
     });
   };
 
-  const updateEducation = (id: string, field: string, value: string) => {
+  const updateEducation = (
+    id: string | undefined,
+    field: string,
+    value: string
+  ) => {
+    if (!id) return;
     setFormData({
       ...formData,
       data: {
@@ -196,7 +203,8 @@ export const PortfolioForm: React.FC<PortfolioFormProps> = ({
     });
   };
 
-  const removeEducation = (id: string) => {
+  const removeEducation = (id: string | undefined) => {
+    if (!id) return;
     setFormData({
       ...formData,
       data: {

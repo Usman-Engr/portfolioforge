@@ -29,7 +29,7 @@ export interface PortfolioData {
       location?: string;
     };
     projects: Array<{
-      id: string;
+      id?: string;
       name: string;
       description: string;
       techStack: string[];
@@ -39,7 +39,7 @@ export interface PortfolioData {
     }>;
     skills: string[];
     education: Array<{
-      id: string;
+      id?: string;
       degree: string;
       institution: string;
       year: string;

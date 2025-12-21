@@ -5,7 +5,7 @@ import { getToken } from 'next-auth/jwt';
 // Protected routes that require authentication
 const protectedRoutes = ['/dashboard', '/builder'];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // Check if the route is protected
