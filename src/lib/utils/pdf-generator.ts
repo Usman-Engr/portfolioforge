@@ -59,7 +59,7 @@ export const downloadPortfolioAsPDF = async (elementId: string, fileName: string
       
       // Regex to find CSS color functions like oklab(...), lab(...), color(...)
       // We purposefully match the whole function string to replace it.
-      const colorFunctionRegex = /(?:oklab|lab|color)\([^)]+\)/g;
+      const colorFunctionRegex = /(?:oklch|oklab|lch|lab|color)\([^)]+\)/g;
 
       allElements.forEach((node) => {
           const el = node as HTMLElement;
