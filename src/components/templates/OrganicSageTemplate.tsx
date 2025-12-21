@@ -1,196 +1,230 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 import { PortfolioData } from "@/lib/types/portfolio";
-import {
-  Leaf,
-  Sun,
-  Wind,
-  Cloud,
-  MapPin,
-  Instagram,
-  Mail,
-  Github,
-  Linkedin,
-} from "lucide-react";
+import { ArrowDownRight, MoveRight, Loader2, Leaf } from "lucide-react";
 
 export default function OrganicSageTemplate({ data }: { data: PortfolioData }) {
-  const { personal, contact, social, projects, experience, skills } = data;
+  const { personal, projects, experience, skills, contact } = data;
+  const containerRef = useRef(null);
+  const { scrollYProgress } = useScroll({ container: containerRef });
 
   return (
-    <div className="h-screen w-screen bg-[#FDFBF7] text-[#4A5D4E] font-serif selection:bg-[#D4E2D4] overflow-hidden flex flex-col md:flex-row">
-      {/* Grain Overlay */}
-      <div className="fixed inset-0 pointer-events-none z-50 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03]" />
-
-      {/* Left Panel: Static Identity */}
-      <aside className="w-full md:w-[450px] lg:w-[600px] h-full flex flex-col justify-between p-12 lg:p-24 border-r border-[#4A5D4E]/10 relative bg-white/50 backdrop-blur-3xl shrink-0">
-        <nav className="flex justify-between items-center mb-20 md:mb-0">
-          <div className="text-3xl font-black lowercase tracking-tighter italic">
-            {personal.name?.split(" ")[0]}.
-          </div>
-        </nav>
-
-        <div className="space-y-12">
-          <div className="inline-flex items-center gap-3 px-5 py-2 bg-[#D4E2D4]/30 rounded-full text-[10px] font-black uppercase tracking-[0.2em]">
-            <Leaf className="w-4 h-4 fill-current" />
-            Human Nature
-          </div>
-          <motion.h1
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className="text-7xl lg:text-9xl font-black italic tracking-tighter text-[#2D3A2F] leading-[0.85]"
+    <div className="bg-[#E7E5E4] text-[#292524] font-serif selection:bg-[#57534E] selection:text-white">
+      {/* MOBILE/TABLET LAYOUT (<1024px) - Linear Feed */}
+      <div className="lg:hidden min-h-screen flex flex-col">
+        <header className="p-6 sticky top-0 bg-[#E7E5E4]/90 backdrop-blur-xl z-50 border-b border-[#292524]/10 flex justify-between items-center">
+          <span className="text-xl font-bold tracking-tight text-[#292524]">
+            {personal.name || "SAGE"}
+          </span>
+          <a
+            href={`mailto:${contact.email}`}
+            className="px-4 py-2 bg-[#292524] text-[#E7E5E4] text-xs font-bold uppercase tracking-widest rounded-full"
           >
-            Natural <br />
-            Design.
-          </motion.h1>
-          <p className="text-xl lg:text-2xl text-[#6D8B74] font-medium leading-relaxed italic max-w-sm">
-            {personal.title} — {personal.bio}
-          </p>
-        </div>
+            Connect
+          </a>
+        </header>
 
-        <div className="space-y-10 pt-20">
-          <div className="flex gap-10 text-[10px] font-black uppercase tracking-[0.3em] opacity-40">
-            {social.github && (
-              <a
-                href={`https://github.com/${social.github}`}
-                className="hover:opacity-100 transition-opacity"
-              >
-                Github
-              </a>
-            )}
-            {social.linkedin && (
-              <a
-                href={`https://linkedin.com/in/${social.linkedin}`}
-                className="hover:opacity-100 transition-opacity"
-              >
-                LinkedIn
-              </a>
-            )}
-          </div>
-          <div className="text-[10px] font-black uppercase tracking-[0.5em] opacity-20">
-            EST. MMXXV / PORTFOLIO_CORE
-          </div>
-        </div>
+        <main className="px-6 py-12 space-y-20">
+          <section className="space-y-6">
+            <Leaf className="w-8 h-8 text-[#57534E]" />
+            <h1 className="text-5xl font-medium leading-[1.1] tracking-tight">
+              {personal.title}
+            </h1>
+            <p className="text-lg leading-relaxed text-[#57534E] font-sans">
+              {personal.bio}
+            </p>
+          </section>
 
-        {/* Decorative Shape */}
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-          className="absolute -bottom-20 -left-20 w-80 h-80 bg-[#D4E2D4]/20 rounded-full blur-3xl pointer-events-none"
-        />
-      </aside>
-
-      {/* Right Panel: Scrollable Content */}
-      <main className="flex-1 h-full overflow-y-auto no-scrollbar bg-[#F6F3ED]/30">
-        <section className="p-12 lg:p-24 space-y-40">
-          {/* Projects Flow */}
-          <div className="space-y-40">
-            <div className="flex items-baseline justify-between border-b border-[#4A5D4E]/10 pb-10">
-              <h2 className="text-4xl font-black italic tracking-tighter lowercase">
-                Creations.
+          <section className="space-y-8">
+            <div className="flex items-center gap-4">
+              <span className="w-2 h-2 rounded-full bg-[#57534E]" />
+              <h2 className="text-xs font-bold uppercase tracking-widest text-[#57534E] font-sans">
+                Selected Works
               </h2>
-              <span className="text-[10px] font-black opacity-20 uppercase tracking-widest">
-                001 — 00{projects.length}
-              </span>
             </div>
-
             {projects.map((project, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="group cursor-pointer"
-              >
-                <div className="aspect-4/3 bg-white rounded-[60px] overflow-hidden mb-10 relative shadow-2xl shadow-[#4A5D4E]/5 border border-[#4A5D4E]/5">
-                  <div className="absolute inset-0 bg-[#D4E2D4]/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="px-8 py-3 bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-xs font-black uppercase tracking-widest italic">
-                      Open Story
-                    </div>
-                  </div>
-                  <div className="absolute top-10 right-10 flex items-center gap-4">
-                    {project.techStack.slice(0, 2).map((tech, ti) => (
-                      <span
-                        key={ti}
-                        className="text-[9px] font-black uppercase tracking-widest bg-white/50 backdrop-blur-sm px-4 py-2 rounded-full"
-                      >
-                        {tech}
-                      </span>
-                    ))}
+              <div key={i} className="group cursor-pointer">
+                <div className="aspect-[4/3] bg-[#D6D3D1] rounded-2xl overflow-hidden mb-4 relative">
+                  {project.imageUrl && (
+                    <img
+                      src={project.imageUrl}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                  <div className="absolute top-4 right-4 bg-white/90 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest font-sans">
+                    2024
                   </div>
                 </div>
-                <div className="px-4 space-y-4">
-                  <h3 className="text-5xl font-black italic tracking-tight text-[#2D3A2F] leading-none lowercase group-hover:translate-x-4 transition-transform duration-700">
-                    {project.name}
-                  </h3>
-                  <p className="text-xl text-[#6D8B74] leading-relaxed italic opacity-60 line-clamp-2 max-w-xl">
-                    {project.description}
-                  </p>
-                </div>
-              </motion.div>
+                <h3 className="text-3xl font-medium mb-2">{project.name}</h3>
+                <p className="text-sm text-[#57534E] line-clamp-3 font-sans leading-relaxed">
+                  {project.description}
+                </p>
+              </div>
             ))}
-          </div>
+          </section>
 
-          {/* Expertise Section */}
-          <div className="space-y-24 pb-40">
-            <div className="flex items-baseline justify-between border-b border-[#4A5D4E]/10 pb-10">
-              <h2 className="text-4xl font-black italic tracking-tighter lowercase">
-                Expertise.
+          <section className="space-y-8">
+            <div className="flex items-center gap-4">
+              <span className="w-2 h-2 rounded-full bg-[#57534E]" />
+              <h2 className="text-xs font-bold uppercase tracking-widest text-[#57534E] font-sans">
+                Expertise
               </h2>
             </div>
-
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-2 gap-3">
               {skills.map((skill, i) => (
                 <div
                   key={i}
-                  className="p-12 bg-white rounded-[40px] flex justify-between items-center group hover:bg-[#D4E2D4] transition-all duration-700 border border-[#4A5D4E]/5"
+                  className="p-4 bg-white/50 rounded-xl text-sm font-bold text-[#44403C] font-sans border border-[#292524]/5"
                 >
-                  <div className="space-y-2">
-                    <h4 className="text-3xl font-black italic text-[#2D3A2F] lowercase mb-1">
-                      {skill.name}
-                    </h4>
-                    <div className="flex gap-4">
-                      {Array.from({ length: 5 }).map((_, si) => (
-                        <div
-                          key={si}
-                          className={`w-8 h-1 rounded-full ${
-                            si < skill.level
-                              ? "bg-[#4A5D4E]"
-                              : "bg-[#4A5D4E]/10"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <Sun className="w-10 h-10 opacity-10 group-hover:opacity-100 group-hover:rotate-90 transition-all duration-1000" />
+                  {skill.name}
                 </div>
               ))}
             </div>
+          </section>
+        </main>
+
+        <footer className="p-6 bg-[#292524] text-[#E7E5E4] py-20 text-center space-y-8">
+          <h2 className="text-4xl font-medium">Let's Create Together</h2>
+          <p className="text-[#A8A29E] font-sans max-w-xs mx-auto text-sm leading-relaxed">
+            Open for collaborations and new opportunities. Reach out to start a
+            conversation.
+          </p>
+          <a
+            href={`mailto:${contact.email}`}
+            className="inline-block text-xl underline underline-offset-4 decoration-1"
+          >
+            {contact.email}
+          </a>
+        </footer>
+      </div>
+
+      {/* DESKTOP LAYOUT (lg+) - Split Screen Scroll */}
+      <div className="hidden lg:flex h-screen w-screen overflow-hidden">
+        {/* Left Fixed Panel */}
+        <aside className="w-1/2 h-full p-20 flex flex-col justify-between border-r border-[#292524]/10 relative bg-[#E7E5E4]">
+          <div className="space-y-12 max-w-xl">
+            <h1 className="text-7xl lg:text-8xl font-medium tracking-tight leading-[0.9] text-[#292524]">
+              {personal.name?.split(" ")[0]} <br />
+              <span className="text-[#A8A29E] italic">
+                {personal.name?.split(" ")[1]}
+              </span>
+            </h1>
+            <p className="text-xl lg:text-2xl leading-relaxed text-[#57534E] font-sans font-light max-w-md">
+              {personal.bio}
+            </p>
+            <div className="flex gap-4 pt-8">
+              <button className="px-8 py-4 bg-[#292524] text-[#E7E5E4] rounded-full font-sans text-xs font-bold uppercase tracking-widest hover:bg-[#44403C] transition-colors flex items-center gap-2">
+                Connect <ArrowDownRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
-          {/* Contact Bottom */}
-          <footer className="pt-20 border-t border-[#4A5D4E]/10 flex flex-col gap-10">
-            <h2 className="text-6xl font-black italic tracking-tighter text-[#2D3A2F] lowercase">
-              Plant a Seed.
-            </h2>
-            <a
-              href={`mailto:${contact.email}`}
-              className="text-4xl font-black italic text-[#4A5D4E] underline decoration-[#D4E2D4] underline-offset-16 decoration-4"
-            >
-              {contact.email}
-            </a>
-          </footer>
-        </section>
-      </main>
+          <div className="grid grid-cols-2 gap-12 font-sans text-sm text-[#57534E]">
+            <div>
+              <span className="block text-xs font-bold uppercase tracking-widest text-[#A8A29E] mb-4">
+                Location
+              </span>
+              {personal.location}
+            </div>
+            <div>
+              <span className="block text-xs font-bold uppercase tracking-widest text-[#A8A29E] mb-4">
+                Focus
+              </span>
+              {personal.title}
+            </div>
+          </div>
+        </aside>
+
+        {/* Right Scrollable Panel */}
+        <main
+          ref={containerRef}
+          className="w-1/2 h-full overflow-y-auto custom-scrollbar bg-white"
+        >
+          <div className="p-20 space-y-40 min-h-screen">
+            {/* Projects Stream */}
+            <div className="space-y-20">
+              {projects.map((project, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8 }}
+                  className="group space-y-8 cursor-pointer"
+                >
+                  <div className="aspect-[16/10] bg-[#E7E5E4] rounded-[2rem] overflow-hidden relative shadow-2xl shadow-[#292524]/5">
+                    {project.imageUrl && (
+                      <img
+                        src={project.imageUrl}
+                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 transform group-hover:scale-105"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500" />
+                  </div>
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-4 max-w-md">
+                      <h3 className="text-4xl font-medium">{project.name}</h3>
+                      <p className="text-lg text-[#78716C] font-sans font-light leading-relaxed">
+                        {project.description}
+                      </p>
+                      <div className="flex gap-4 pt-2">
+                        {project.techStack.map((tech, t) => (
+                          <span
+                            key={t}
+                            className="text-xs font-bold uppercase tracking-widest text-[#A8A29E] font-sans border-b border-[#E7E5E4] pb-1"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="w-12 h-12 rounded-full border border-[#292524]/10 flex items-center justify-center group-hover:bg-[#292524] group-hover:text-white transition-all transform group-hover:rotate-[-45deg]">
+                      <MoveRight className="w-5 h-5" />
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Experience List */}
+            <div className="space-y-12">
+              <h2 className="text-3xl font-medium border-b border-[#E7E5E4] pb-8">
+                Experience
+              </h2>
+              {experience.map((exp, i) => (
+                <div
+                  key={i}
+                  className="flex justify-between items-baseline group hover:bg-[#FAFAFA] -mx-4 p-4 rounded-xl transition-colors"
+                >
+                  <div>
+                    <h4 className="text-xl font-medium mb-2">{exp.role}</h4>
+                    <p className="text-sm font-bold uppercase tracking-widest text-[#A8A29E] font-sans">
+                      {exp.company}
+                    </p>
+                  </div>
+                  <span className="text-sm font-sans font-medium text-[#78716C]">
+                    {exp.duration}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="h-40" />
+          </div>
+        </main>
+      </div>
 
       <style jsx global>{`
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
         }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #d6d3d1;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
         }
       `}</style>
     </div>

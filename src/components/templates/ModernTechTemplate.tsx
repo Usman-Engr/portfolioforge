@@ -1,235 +1,226 @@
-'use client';
+"use client";
 
-import { PortfolioData } from '@/lib/types/portfolio';
-import { Mail, Phone, Globe, MapPin, Github, Linkedin, Twitter, ExternalLink, Briefcase, GraduationCap, Star } from 'lucide-react';
+import { PortfolioData } from "@/lib/types/portfolio";
+import {
+  Mail,
+  Phone,
+  Globe,
+  MapPin,
+  Github,
+  Linkedin,
+  Twitter,
+  ExternalLink,
+  Briefcase,
+  GraduationCap,
+  Star,
+  ArrowRight,
+} from "lucide-react";
 
-interface ModernTechTemplateProps {
-    data: PortfolioData;
-}
+export default function ModernTechTemplate({ data }: { data: PortfolioData }) {
+  const { personal, contact, social, projects, skills, experience } = data;
 
-export default function ModernTechTemplate({ data }: ModernTechTemplateProps) {
-    return (
-        <div className="min-h-screen bg-gray-900 text-white">
-            {/* Hero Section with Glassmorphism */}
-            <section className="relative min-h-screen flex items-center justify-center px-6 py-20 overflow-hidden">
-                {/* Grid Background */}
-                <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:64px_64px]"></div>
+  return (
+    <div className="min-h-screen bg-gray-950 text-white font-sans selection:bg-cyan-500/30 overflow-x-hidden">
+      {/* MOBILE/TABLET LAYOUT (<1024px) - High Contrast & Stacked */}
+      <div className="lg:hidden flex flex-col min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-950 to-black">
+        <header className="px-6 py-12 flex flex-col gap-6">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-purple-600 p-[2px]">
+            <div className="w-full h-full bg-gray-950 rounded-[14px] flex items-center justify-center">
+              <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
+                {personal.name?.[0]}
+              </span>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold tracking-tight text-white leading-tight">
+              {personal.name}
+            </h1>
+            <p className="text-lg font-medium text-cyan-400">
+              {personal.title}
+            </p>
+          </div>
+          <div className="flex gap-4">
+            {[Github, Linkedin, Twitter].map((Icon, i) => (
+              <div
+                key={i}
+                className="p-3 bg-white/5 border border-white/10 rounded-xl"
+              >
+                <Icon className="w-5 h-5 text-gray-400" />
+              </div>
+            ))}
+          </div>
+        </header>
 
-                {/* Gradient Orbs */}
-                <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
-                <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+        <main className="px-6 pb-20 space-y-16">
+          {/* Bio */}
+          <div className="p-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
+            <p className="text-base leading-relaxed text-gray-300">
+              {personal.bio}
+            </p>
+          </div>
 
-                <div className="relative z-10 max-w-6xl mx-auto">
-                    <div className="backdrop-blur-xl bg-white/5 rounded-3xl p-12 border border-white/10 shadow-2xl">
-                        <h1 className="text-6xl md:text-8xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400">
-                            {data.personal.name || 'Your Name'}
-                        </h1>
-                        <p className="text-3xl font-semibold text-cyan-300 mb-6">
-                            {data.personal.title || 'Your Title'}
-                        </p>
-                        <p className="text-xl text-gray-300 max-w-3xl leading-relaxed mb-8">
-                            {data.personal.bio || 'Your bio goes here...'}
-                        </p>
-
-                        {/* Social Links */}
-                        {data.social && Object.keys(data.social).length > 0 && (
-                            <div className="flex gap-4 flex-wrap">
-                                {data.social.linkedin && (
-                                    <a href={data.social.linkedin} target="_blank" rel="noopener noreferrer"
-                                        className="p-3 backdrop-blur-md bg-white/10 rounded-xl border border-white/20 hover:bg-white/20 transition-all">
-                                        <Linkedin className="w-6 h-6" />
-                                    </a>
-                                )}
-                                {data.social.github && (
-                                    <a href={data.social.github} target="_blank" rel="noopener noreferrer"
-                                        className="p-3 backdrop-blur-md bg-white/10 rounded-xl border border-white/20 hover:bg-white/20 transition-all">
-                                        <Github className="w-6 h-6" />
-                                    </a>
-                                )}
-                                {data.social.twitter && (
-                                    <a href={data.social.twitter} target="_blank" rel="noopener noreferrer"
-                                        className="p-3 backdrop-blur-md bg-white/10 rounded-xl border border-white/20 hover:bg-white/20 transition-all">
-                                        <Twitter className="w-6 h-6" />
-                                    </a>
-                                )}
-                            </div>
-                        )}
-                    </div>
+          {/* Projects Stack */}
+          <section className="space-y-6">
+            <h2 className="text-sm font-bold uppercase tracking-widest text-gray-500 mb-4">
+              Projects
+            </h2>
+            {projects.map((project, i) => (
+              <div
+                key={i}
+                className="bg-gray-900 rounded-[24px] overflow-hidden border border-white/5 shadow-2xl"
+              >
+                <div className="p-6 space-y-4">
+                  <h3 className="text-2xl font-bold text-white">
+                    {project.name}
+                  </h3>
+                  <p className="text-sm text-gray-400 leading-relaxed line-clamp-3">
+                    {project.description}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {project.techStack.slice(0, 3).map((t, idx) => (
+                      <span
+                        key={idx}
+                        className="text-[10px] font-bold uppercase tracking-wider text-cyan-300 bg-cyan-900/20 px-2 py-1 rounded border border-cyan-500/20"
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                  <button className="w-full py-3 mt-4 bg-white/10 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2">
+                    View Project <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
-            </section>
+              </div>
+            ))}
+          </section>
 
-            {/* Projects Grid */}
-            {data.projects && data.projects.length > 0 && (
-                <section className="py-20 px-6">
-                    <div className="max-w-7xl mx-auto">
-                        <h2 className="text-5xl font-bold mb-12 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400">
-                            Featured Projects
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {data.projects.map((project, index) => (
-                                <div key={index} className="group backdrop-blur-xl bg-white/5 rounded-2xl p-6 border border-white/10 hover:border-cyan-400/50 transition-all">
-                                    <h3 className="text-2xl font-bold mb-3 text-cyan-300">{project.name}</h3>
-                                    <p className="text-gray-400 mb-4 line-clamp-3">{project.description}</p>
-
-                                    {project.techStack && project.techStack.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mb-4">
-                                            {project.techStack.slice(0, 3).map((tech, i) => (
-                                                <span key={i} className="px-3 py-1 bg-cyan-500/20 text-cyan-300 rounded-lg text-xs font-semibold border border-cyan-500/30">
-                                                    {tech}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    <div className="flex gap-3">
-                                        {project.liveUrl && (
-                                            <a href={project.liveUrl} target="_blank" rel="noopener noreferrer"
-                                                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-lg text-sm font-semibold hover:shadow-lg hover:shadow-cyan-500/50 transition-all">
-                                                <ExternalLink className="w-4 h-4" />
-                                                View
-                                            </a>
-                                        )}
-                                        {project.githubUrl && (
-                                            <a href={project.githubUrl} target="_blank" rel="noopener noreferrer"
-                                                className="flex items-center gap-2 px-4 py-2 backdrop-blur-md bg-white/10 rounded-lg text-sm font-semibold hover:bg-white/20 transition-all">
-                                                <Github className="w-4 h-4" />
-                                                Code
-                                            </a>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+          {/* Experience List - Simple Timeline */}
+          <section className="space-y-8">
+            <h2 className="text-sm font-bold uppercase tracking-widest text-gray-500">
+              History
+            </h2>
+            <div className="space-y-8 border-l-2 border-white/10 ml-2 pl-6">
+              {experience.map((exp, i) => (
+                <div key={i} className="relative">
+                  <div className="absolute -left-[29px] top-1 w-3 h-3 rounded-full bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.5)]" />
+                  <div className="space-y-1">
+                    <h3 className="text-lg font-bold text-white">{exp.role}</h3>
+                    <div className="text-sm font-medium text-purple-400">
+                      {exp.company}
                     </div>
-                </section>
-            )}
-
-            {/* Skills with Proficiency */}
-            {data.skills && data.skills.length > 0 && (
-                <section className="py-20 px-6 bg-black/20">
-                    <div className="max-w-5xl mx-auto">
-                        <h2 className="text-5xl font-bold mb-12 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400">
-                            Skills & Technologies
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {data.skills.map((skill, index) => {
-                                const skillName = typeof skill === 'string' ? skill : skill.name;
-                                const skillLevel = typeof skill === 'string' ? 3 : skill.level || 3;
-
-                                return (
-                                    <div key={index} className="backdrop-blur-xl bg-white/5 rounded-xl p-6 border border-white/10">
-                                        <div className="flex justify-between items-center mb-3">
-                                            <span className="text-lg font-semibold text-cyan-300">{skillName}</span>
-                                            <div className="flex gap-1">
-                                                {[1, 2, 3, 4, 5].map((star) => (
-                                                    <Star
-                                                        key={star}
-                                                        className={`w-4 h-4 ${star <= skillLevel ? 'fill-cyan-400 text-cyan-400' : 'text-gray-600'}`}
-                                                    />
-                                                ))}
-                                            </div>
-                                        </div>
-                                        <div className="w-full bg-gray-700 rounded-full h-2">
-                                            <div
-                                                className="bg-gradient-to-r from-cyan-500 to-purple-500 h-2 rounded-full transition-all"
-                                                style={{ width: `${(skillLevel / 5) * 100}%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                    <div className="text-xs text-gray-500 font-bold uppercase tracking-widest">
+                      {exp.duration}
                     </div>
-                </section>
-            )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
 
-            {/* Experience Timeline */}
-            {data.experience && data.experience.length > 0 && (
-                <section className="py-20 px-6">
-                    <div className="max-w-5xl mx-auto">
-                        <h2 className="text-5xl font-bold mb-12 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400">
-                            Work Experience
-                        </h2>
-                        <div className="space-y-8">
-                            {data.experience.map((exp, index) => (
-                                <div key={index} className="relative pl-8 border-l-2 border-cyan-500/30">
-                                    <div className="absolute -left-3 top-0 w-6 h-6 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full border-4 border-gray-900"></div>
-                                    <div className="backdrop-blur-xl bg-white/5 rounded-xl p-6 border border-white/10">
-                                        <h3 className="text-2xl font-bold text-cyan-300 mb-2">{exp.role}</h3>
-                                        <p className="text-xl text-purple-300 mb-2">{exp.company}</p>
-                                        <p className="text-sm text-gray-400 mb-4">{exp.duration}</p>
-                                        <p className="text-gray-300">{exp.description}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-            )}
+          {/* Mobile Contact */}
+          <footer className="pt-8 pb-12">
+            <div className="bg-gradient-to-r from-cyan-900/20 to-purple-900/20 rounded-3xl p-8 border border-white/5 text-center space-y-6">
+              <h2 className="text-2xl font-bold text-white">
+                Let's Work Together
+              </h2>
+              <a
+                href={`mailto:${contact.email}`}
+                className="block text-lg font-bold text-cyan-400 underline decoration-cyan-500/30 underline-offset-4"
+              >
+                {contact.email}
+              </a>
+            </div>
+          </footer>
+        </main>
+      </div>
 
-            {/* Education */}
-            {data.education && data.education.length > 0 && (
-                <section className="py-20 px-6 bg-black/20">
-                    <div className="max-w-5xl mx-auto">
-                        <h2 className="text-5xl font-bold mb-12 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400">
-                            Education
-                        </h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {data.education.map((edu, index) => (
-                                <div key={index} className="backdrop-blur-xl bg-white/5 rounded-xl p-6 border border-white/10">
-                                    <div className="flex items-start gap-4">
-                                        <div className="p-3 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-xl">
-                                            <GraduationCap className="w-6 h-6" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-xl font-bold text-cyan-300 mb-2">{edu.degree}</h3>
-                                            <p className="text-purple-300 mb-1">{edu.institution}</p>
-                                            <p className="text-sm text-gray-400">{edu.year}</p>
-                                            {edu.description && <p className="text-gray-300 mt-3">{edu.description}</p>}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-            )}
+      {/* DESKTOP LAYOUT (lg+) - Glassmorphism & Grids */}
+      <div className="hidden lg:block">
+        {/* Hero Section */}
+        <section className="relative min-h-[80vh] flex items-center justify-center px-6 py-20 overflow-hidden">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:64px_64px]" />
+          <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-20" />
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-20" />
 
-            {/* Contact */}
-            {data.contact && (
-                <section className="py-20 px-6">
-                    <div className="max-w-4xl mx-auto">
-                        <div className="backdrop-blur-xl bg-white/5 rounded-3xl p-12 border border-white/10 text-center">
-                            <h2 className="text-5xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400">
-                                Get In Touch
-                            </h2>
-                            <div className="flex flex-wrap justify-center gap-6">
-                                {data.contact.email && (
-                                    <a href={`mailto:${data.contact.email}`}
-                                        className="flex items-center gap-3 px-6 py-3 backdrop-blur-md bg-white/10 rounded-xl border border-white/20 hover:bg-white/20 transition-all">
-                                        <Mail className="w-5 h-5" />
-                                        <span>{data.contact.email}</span>
-                                    </a>
-                                )}
-                                {data.contact.phone && (
-                                    <a href={`tel:${data.contact.phone}`}
-                                        className="flex items-center gap-3 px-6 py-3 backdrop-blur-md bg-white/10 rounded-xl border border-white/20 hover:bg-white/20 transition-all">
-                                        <Phone className="w-5 h-5" />
-                                        <span>{data.contact.phone}</span>
-                                    </a>
-                                )}
-                                {data.contact.website && (
-                                    <a href={data.contact.website} target="_blank" rel="noopener noreferrer"
-                                        className="flex items-center gap-3 px-6 py-3 backdrop-blur-md bg-white/10 rounded-xl border border-white/20 hover:bg-white/20 transition-all">
-                                        <Globe className="w-5 h-5" />
-                                        <span>Website</span>
-                                    </a>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            )}
-        </div>
-    );
+          <div className="relative z-10 max-w-6xl mx-auto w-full">
+            <div className="backdrop-blur-xl bg-white/5 rounded-[40px] p-16 border border-white/10 shadow-2xl">
+              <h1 className="text-8xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 leading-tight">
+                {personal.name}
+              </h1>
+              <p className="text-4xl font-semibold text-cyan-300 mb-8">
+                {personal.title}
+              </p>
+              <p className="text-2xl text-gray-300 max-w-3xl leading-relaxed mb-12">
+                {personal.bio}
+              </p>
+              <div className="flex gap-4">
+                {[Github, Linkedin, Twitter].map((Icon, i) => (
+                  <div
+                    key={i}
+                    className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors cursor-pointer"
+                  >
+                    <Icon className="w-6 h-6 text-white" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <main className="max-w-7xl mx-auto px-6 py-20 space-y-32">
+          {/* Projects Grid */}
+          <section>
+            <h2 className="text-5xl font-bold mb-16 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400">
+              Featured Projects
+            </h2>
+            <div className="grid grid-cols-3 gap-8">
+              {projects.map((project, i) => (
+                <div
+                  key={i}
+                  className="group bg-white/5 rounded-[32px] p-8 border border-white/10 hover:border-cyan-500/50 transition-all hover:-translate-y-2"
+                >
+                  <h3 className="text-2xl font-bold text-cyan-300 mb-4">
+                    {project.name}
+                  </h3>
+                  <p className="text-gray-400 mb-8 leading-relaxed h-20 overflow-hidden">
+                    {project.description}
+                  </p>
+                  <div className="flex gap-4">
+                    <button className="px-6 py-3 bg-white/10 rounded-xl text-sm font-bold hover:bg-white/20 transition-all flex items-center gap-2">
+                      View Details <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Skills Grid */}
+          <section className="bg-white/5 rounded-[40px] p-16 border border-white/10">
+            <h2 className="text-5xl font-bold mb-16 text-white">
+              Technical Arsenal
+            </h2>
+            <div className="grid grid-cols-4 gap-6">
+              {skills.map((skill, i) => (
+                <div
+                  key={i}
+                  className="bg-black/20 p-6 rounded-2xl border border-white/5 text-center"
+                >
+                  <div className="text-xl font-bold text-cyan-200 mb-2">
+                    {skill.name}
+                  </div>
+                  <div className="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-cyan-500 to-purple-500"
+                      style={{ width: `${skill.level * 20}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+  );
 }

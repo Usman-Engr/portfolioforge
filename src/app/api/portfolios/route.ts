@@ -45,6 +45,14 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
+        if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+            console.error('[PORTFOLIOS_POST] Missing SUPABASE_SERVICE_ROLE_KEY. Cannot check global slug uniqueness.');
+            return NextResponse.json({ 
+                error: 'Server configuration error: Missing Service Role Key', 
+                details: 'Please add SUPABASE_SERVICE_ROLE_KEY to your .env.local file.' 
+            }, { status: 500 });
+        }
+
         // Check if slug is already taken using Supabase Admin
         const { data: existing, error: checkError } = await supabaseAdmin
             .from('app_portfolios')
@@ -53,8 +61,13 @@ export async function POST(req: Request) {
             .maybeSingle();
 
         if (checkError) {
-            console.error('[SLUG_CHECK]', checkError);
-            return NextResponse.json({ error: 'Failed to check slug' }, { status: 500 });
+            console.error('[SLUG_CHECK] Detailed error:', JSON.stringify(checkError, null, 2));
+            return NextResponse.json({ 
+                error: 'Failed to check slug', 
+                details: checkError.message, 
+                code: checkError.code, 
+                hint: checkError.hint 
+            }, { status: 500 });
         }
 
         if (existing) {
