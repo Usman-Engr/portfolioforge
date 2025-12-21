@@ -128,26 +128,22 @@ export default function TemplatesPage() {
 
         {/* Templates Grid Container */}
         <div className="space-y-32">
-          {/* Free Section */}
+          {/* Developers Section */}
           <section>
             <div className="flex items-end justify-between mb-12 border-b border-white/5 pb-8">
               <div>
-                <h2 className="text-4xl font-black tracking-tight">
-                  Essential Series
+                <h2 className="text-4xl font-black tracking-tight flex items-center gap-3">
+                  <Layout className="w-8 h-8 text-blue-500" />
+                  Engineering & Tech
                 </h2>
                 <p className="text-gray-500 mt-2 font-bold uppercase text-xs tracking-widest">
-                  Free for all creators
-                </p>
-              </div>
-              <div className="hidden md:block">
-                <p className="text-xs font-black text-gray-600 uppercase tracking-widest">
-                  001 — 004
+                  High-performance layouts for developers
                 </p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
               {templates
-                .filter((t) => !t.isPremium)
+                .filter((t) => t.targetAudience === "developer")
                 .map((template, index) => (
                   <TemplateCard
                     key={template.id}
@@ -155,36 +151,28 @@ export default function TemplatesPage() {
                     template={template}
                     onPreview={() => handlePreview(template)}
                     onUse={() => handleUseTemplate(template)}
+                    isPremium={template.isPremium}
                   />
                 ))}
             </div>
           </section>
 
-          {/* Premium Section */}
+          {/* Designers Section */}
           <section>
             <div className="flex items-end justify-between mb-12 border-b border-white/5 pb-8">
               <div>
-                <div className="flex items-center gap-3">
-                  <h2 className="text-4xl font-black tracking-tight">
-                    Signature Series
-                  </h2>
-                  <div className="px-3 py-1 bg-linear-to-r from-purple-500 to-blue-500 rounded-lg text-[10px] font-black uppercase tracking-widest text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]">
-                    Pro
-                  </div>
-                </div>
+                <h2 className="text-4xl font-black tracking-tight flex items-center gap-3">
+                  <Sparkles className="w-8 h-8 text-purple-500" />
+                  Creative & Design
+                </h2>
                 <p className="text-gray-500 mt-2 font-bold uppercase text-xs tracking-widest">
-                  Curated Masterpieces
-                </p>
-              </div>
-              <div className="hidden md:block">
-                <p className="text-xs font-black text-gray-600 uppercase tracking-widest">
-                  001 — 003
+                  Visual-first portfolios for artists and designers
                 </p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
               {templates
-                .filter((t) => t.isPremium)
+                .filter((t) => t.targetAudience === "designer")
                 .map((template, index) => (
                   <TemplateCard
                     key={template.id}
@@ -192,7 +180,41 @@ export default function TemplatesPage() {
                     template={template}
                     onPreview={() => handlePreview(template)}
                     onUse={() => handleUseTemplate(template)}
-                    isPremium
+                    isPremium={template.isPremium}
+                  />
+                ))}
+            </div>
+          </section>
+
+          {/* Corporate/Resume Section */}
+          <section>
+            <div className="flex items-end justify-between mb-12 border-b border-white/5 pb-8">
+              <div>
+                <h2 className="text-4xl font-black tracking-tight flex items-center gap-3">
+                  <Star className="w-8 h-8 text-yellow-500" />
+                  Corporate & Resume
+                </h2>
+                <p className="text-gray-500 mt-2 font-bold uppercase text-xs tracking-widest">
+                  Professional excellence for all careers
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+              {templates
+                .filter(
+                  (t) =>
+                    t.targetAudience === "corporate" ||
+                    t.category === "resume" ||
+                    t.category === "non-tech"
+                )
+                .map((template, index) => (
+                  <TemplateCard
+                    key={template.id}
+                    index={index}
+                    template={template}
+                    onPreview={() => handlePreview(template)}
+                    onUse={() => handleUseTemplate(template)}
+                    isPremium={template.isPremium}
                   />
                 ))}
             </div>
@@ -240,27 +262,39 @@ function TemplateCard({
     >
       {/* Visual Header */}
       <div className="relative h-80 overflow-hidden bg-gray-900">
-        <div
-          className={`absolute inset-0 bg-linear-to-br ${
-            isPremium
-              ? "from-purple-900/30 to-blue-900/30"
-              : "from-gray-800 to-gray-900"
-          } transition-transform duration-700 ${
-            isHovered ? "scale-110" : "scale-100"
-          }`}
-        />
+        {template.thumbnailUrl ? (
+          <img
+            src={template.thumbnailUrl}
+            alt={template.name}
+            className={`w-full h-full object-cover transition-transform duration-700 ${
+              isHovered ? "scale-110" : "scale-100"
+            }`}
+          />
+        ) : (
+          <div
+            className={`absolute inset-0 bg-linear-to-br ${
+              isPremium
+                ? "from-purple-900/30 to-blue-900/30"
+                : "from-gray-800 to-gray-900"
+            } transition-transform duration-700 ${
+              isHovered ? "scale-110" : "scale-100"
+            }`}
+          />
+        )}
 
-        <div className="absolute inset-0 flex items-center justify-center p-12">
-          <div className="w-full h-full border border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center gap-6 group-hover:border-white/20 transition-colors">
-            <div className="w-20 h-20 bg-black/40 backdrop-blur-md rounded-2xl flex items-center justify-center group-hover:bg-purple-600 transition-colors duration-500">
-              <Layout className="w-10 h-10 text-white/50 group-hover:text-white" />
+        <div className="absolute inset-0 flex items-center justify-center p-12 bg-black/20 group-hover:bg-black/0 transition-colors">
+          {!template.thumbnailUrl && (
+            <div className="w-full h-full border border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center gap-6 group-hover:border-white/20 transition-colors">
+              <div className="w-20 h-20 bg-black/40 backdrop-blur-md rounded-2xl flex items-center justify-center group-hover:bg-purple-600 transition-colors duration-500">
+                <Layout className="w-10 h-10 text-white/50 group-hover:text-white" />
+              </div>
+              <div className="text-center">
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest group-hover:text-purple-400 transition-colors">
+                  {template.id} system
+                </p>
+              </div>
             </div>
-            <div className="text-center">
-              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest group-hover:text-purple-400 transition-colors">
-                {template.id} system
-              </p>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Badge Overlay */}

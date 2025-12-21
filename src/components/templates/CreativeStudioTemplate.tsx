@@ -1,6 +1,7 @@
 "use client";
 
 import { PortfolioData } from "@/lib/types/portfolio";
+import { motion } from "framer-motion";
 import {
   Mail,
   Github,
@@ -10,6 +11,8 @@ import {
   Briefcase,
   MapPin,
   Globe,
+  Star,
+  ArrowRight,
 } from "lucide-react";
 
 export default function CreativeStudioTemplate({
@@ -17,205 +20,267 @@ export default function CreativeStudioTemplate({
 }: {
   data: PortfolioData;
 }) {
-  const { personal, contact, social, projects, experience, skills } = data;
+  const {
+    personal = { name: "", title: "", bio: "", location: "" } as any,
+    contact = { email: "" } as any,
+    social = {} as any,
+    projects = [],
+    experience = [],
+    skills = [],
+    education = [],
+  } = data || {};
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white font-sans selection:bg-pink-500 selection:text-white overflow-x-hidden md:overflow-visible">
-      {/* MOBILE/TABLET LAYOUT (<1024px) - Clean Vertical Feed */}
-      <div className="lg:hidden flex flex-col min-h-screen bg-gradient-to-b from-slate-900 to-purple-900/40">
-        <header className="p-6 pt-12 space-y-6">
-          <h1 className="text-5xl font-black leading-none tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-orange-400">
-            {personal.name || "Creative"}
-          </h1>
-          <p className="text-xl font-bold text-gray-300 leading-tight border-l-4 border-pink-500 pl-4 py-1">
-            {personal.title}
-          </p>
-          {personal.location && (
-            <div className="flex items-center gap-2 text-sm text-gray-400 font-medium bg-white/5 py-2 px-4 rounded-full w-fit">
-              <MapPin className="w-4 h-4" /> {personal.location}
+    <div className="min-h-screen bg-[#0a0a0b] text-white font-sans selection:bg-pink-500 overflow-x-hidden selection:text-white">
+      {/* Dynamic Studio Background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-pink-600/20 rounded-full blur-[120px] animate-pulse delay-1000" />
+      </div>
+
+      <div className="relative z-10 p-4 md:p-8 lg:p-12">
+        {/* Floating Nav */}
+        <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-6 py-3 bg-white/5 backdrop-blur-2xl rounded-full border border-white/10 flex items-center gap-8 shadow-2xl">
+          <div className="font-black tracking-tighter text-xl bg-clip-text text-transparent bg-linear-to-r from-pink-500 to-orange-400">
+            {personal.name?.split(" ")[0].toUpperCase() || "STUDIO"}
+          </div>
+          <div className="hidden md:flex items-center gap-6 text-[10px] font-black uppercase tracking-widest text-white/50">
+            <a href="#work" className="hover:text-white transition-colors">
+              Work
+            </a>
+            <a href="#about" className="hover:text-white transition-colors">
+              History
+            </a>
+            <a href="#contact" className="hover:text-white transition-colors">
+              Connect
+            </a>
+          </div>
+        </nav>
+
+        {/* Hero Section */}
+        <header className="min-h-[90vh] flex flex-col items-center justify-center text-center space-y-12 py-32 md:py-48 mt-12 md:mt-0">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-6 max-w-5xl"
+          >
+            <h1 className="text-7xl md:text-[10vw] font-black leading-[0.8] tracking-tighter bg-clip-text text-transparent bg-linear-to-b from-white via-white to-white/20 pb-4">
+              {personal.name || "Creative"}
+            </h1>
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
+              <span className="px-6 py-2 bg-pink-500 rounded-full text-xs font-black uppercase tracking-[0.2em]">
+                {personal.title}
+              </span>
+              <div className="flex items-center gap-2 text-white/40 font-black uppercase tracking-widest text-[10px]">
+                <MapPin className="w-3 h-3" /> {personal.location || "Earth"}
+              </div>
             </div>
-          )}
+          </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 1 }}
+            className="text-xl md:text-3xl text-white/60 max-w-3xl leading-relaxed font-medium px-4"
+          >
+            {personal.bio}
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.6, type: "spring" }}
+            className="flex flex-wrap justify-center gap-4 pt-8"
+          >
+            {Object.entries(social).map(([platform, url], i) => (
+              <a
+                key={i}
+                href={url as string}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-12 h-12 md:w-16 md:h-16 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-center hover:bg-pink-500 hover:scale-110 transition-all group"
+              >
+                <Globe className="w-5 h-5 md:w-6 md:h-6 text-white/50 group-hover:text-white" />
+              </a>
+            ))}
+          </motion.div>
         </header>
 
-        <main className="px-6 pb-20 space-y-16">
-          {/* Bio Card */}
-          <div className="bg-white/5 p-6 rounded-3xl border border-white/10 backdrop-blur-sm">
-            <p className="text-lg leading-relaxed text-gray-200">
-              {personal.bio}
+        {/* Selected Work - Responsive BENTOE GRID */}
+        <section id="work" className="py-32 space-y-20">
+          <div className="flex flex-col items-center text-center space-y-4">
+            <h2 className="text-6xl md:text-9xl font-black tracking-tighter bg-clip-text text-transparent bg-linear-to-r from-pink-500 via-orange-400 to-purple-500">
+              SELECTED_WORK.
+            </h2>
+            <p className="text-white/40 font-black uppercase tracking-[0.4em] text-xs">
+              Handpicked Case Studies
             </p>
           </div>
 
-          {/* Mobile Projects */}
-          <section className="space-y-6">
-            <h2 className="text-3xl font-black tracking-tight text-white mb-8">
-              Work
-            </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-20">
             {projects.map((project, i) => (
-              <div
+              <motion.div
                 key={i}
-                className="bg-white/5 rounded-[32px] overflow-hidden border border-white/10"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="group relative bg-white/5 rounded-[40px] md:rounded-[64px] border border-white/10 overflow-hidden hover:border-pink-500/50 transition-all duration-700"
               >
-                <div className="h-48 bg-black/40 relative">
+                <div className="aspect-ratio-4/3 overflow-hidden bg-white/5 relative">
                   {project.imageUrl && (
                     <img
                       src={project.imageUrl}
-                      className="w-full h-full object-cover opacity-60"
+                      alt={project.name}
+                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700 opacity-60 group-hover:opacity-100"
                     />
                   )}
-                  <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[10px] uppercase font-bold text-pink-400">
-                    2024
-                  </div>
+                  <div className="absolute inset-0 bg-linear-to-t from-[#0a0a0b] via-transparent to-transparent opacity-60" />
                 </div>
-                <div className="p-6 space-y-4">
-                  <h3 className="text-2xl font-black text-white">
-                    {project.name}
-                  </h3>
-                  <p className="text-sm text-gray-400 leading-relaxed line-clamp-3">
-                    {project.description}
-                  </p>
+                <div className="p-8 md:p-12 space-y-6 relative z-10">
                   <div className="flex flex-wrap gap-2">
-                    {project.techStack.slice(0, 3).map((t, idx) => (
+                    {project.techStack?.map((t, idx) => (
                       <span
                         key={idx}
-                        className="bg-white/10 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-gray-300"
+                        className="text-[9px] font-black uppercase tracking-wider text-white/30 border border-white/10 px-3 py-1 rounded-full group-hover:text-pink-400 group-hover:border-pink-500/30 transition-colors"
                       >
                         {t}
                       </span>
                     ))}
                   </div>
+                  <h3 className="text-4xl md:text-6xl font-black tracking-tighter uppercase line-clamp-2">
+                    {project.name}
+                  </h3>
+                  <p className="text-white/50 text-base md:text-lg leading-relaxed line-clamp-3">
+                    {project.description}
+                  </p>
                   <a
                     href={project.liveUrl || "#"}
-                    className="block w-full text-center py-3 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl font-bold text-sm uppercase tracking-widest mt-4"
+                    className="inline-flex items-center gap-4 text-xs font-black uppercase tracking-widest text-pink-500 group-hover:gap-6 transition-all"
                   >
-                    View Project
+                    Explore Case Study <ArrowRight className="w-5 h-5" />
                   </a>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </section>
+          </div>
+        </section>
 
-          {/* Mobile Skills - Wrappable Tags */}
-          <section className="space-y-6">
-            <h2 className="text-3xl font-black tracking-tight text-white">
-              Skills
+        {/* Capabilities - Scrolling Text Effect or Tag Cloud */}
+        <section className="py-32 bg-white/5 rounded-[48px] border border-white/5 overflow-hidden relative">
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(236,72,153,0.1),transparent)]" />
+          <div className="max-w-7xl mx-auto px-8 relative z-10 space-y-20">
+            <h2 className="text-4xl md:text-7xl font-black tracking-tighter text-center">
+              CORE_STACK.
             </h2>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap justify-center gap-4 md:gap-8">
               {skills.map((skill, i) => (
-                <span
+                <motion.div
                   key={i}
-                  className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm font-bold text-gray-200"
+                  whileHover={{ scale: 1.1, rotate: i % 2 === 0 ? 3 : -3 }}
+                  className="px-8 md:px-12 py-4 md:py-6 bg-white/5 rounded-[32px] border border-white/10 text-xl md:text-3xl font-black uppercase group hover:bg-pink-500 transition-colors cursor-default"
                 >
-                  {skill.name}
-                </span>
+                  <span className="group-hover:text-white transition-colors">
+                    {skill.name}
+                  </span>
+                </motion.div>
               ))}
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* Mobile Connect */}
-          <footer className="text-center space-y-8 pt-8">
-            <h2 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-orange-400">
-              Let's Connect
+        {/* Experience & Education - Two Column Layout */}
+        <div
+          id="about"
+          className="grid grid-cols-1 md:grid-cols-2 gap-20 py-32 px-4"
+        >
+          {/* History */}
+          <div className="space-y-16">
+            <h2 className="text-5xl md:text-7xl font-black tracking-tighter bg-clip-text text-transparent bg-linear-to-r from-white to-white/20">
+              HISTORY.
             </h2>
-            <div className="flex justify-center gap-4">
-              {[Github, Linkedin, Twitter, Mail].map((Icon, i) => (
-                <div
-                  key={i}
-                  className="p-4 bg-white/5 rounded-full border border-white/10"
-                >
-                  <Icon className="w-6 h-6 text-white" />
+            <div className="space-y-12">
+              {experience.map((exp, i) => (
+                <div key={i} className="group space-y-4">
+                  <div className="flex justify-between items-start border-b border-white/10 pb-4 group-hover:border-pink-500/50 transition-colors">
+                    <div className="space-y-1">
+                      <h4 className="text-2xl font-black uppercase text-pink-500">
+                        {exp.role}
+                      </h4>
+                      <p className="text-lg font-bold text-white/60">
+                        {exp.company}
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white/30">
+                      {exp.duration}
+                    </span>
+                  </div>
+                  <p className="text-white/40 text-sm leading-relaxed max-w-md">
+                    {exp.description}
+                  </p>
                 </div>
               ))}
             </div>
-            <div className="text-xs text-gray-500 font-bold uppercase tracking-widest pb-10">
-              Designed in Studio
-            </div>
-          </footer>
-        </main>
-      </div>
-
-      {/* DESKTOP LAYOUT (lg+) - Animated & Extravagant */}
-      <div className="hidden lg:block min-h-screen bg-gradient-to-br from-purple-900 via-pink-800 to-orange-700">
-        {/* Hero Section */}
-        <section className="relative min-h-screen flex items-center justify-center px-6 py-20 overflow-hidden">
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute top-20 left-10 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-            <div className="absolute top-40 right-10 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
           </div>
 
-          <div className="relative z-10 max-w-5xl mx-auto text-center space-y-8">
-            <h1 className="text-9xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-pink-200 to-orange-200 animate-fade-in leading-none px-4 pb-4">
-              {personal.name}
-            </h1>
-            <p className="text-4xl font-bold text-pink-200 tracking-tight">
-              {personal.title}
-            </p>
-            <p className="text-2xl text-gray-200 max-w-3xl mx-auto leading-relaxed">
-              {personal.bio}
-            </p>
-            <div className="flex justify-center gap-4 flex-wrap pt-8">
-              {/* Social Buttons */}
-              {Object.values(social).map((url, i) => (
+          {/* Education */}
+          <div className="space-y-16">
+            <h2 className="text-5xl md:text-7xl font-black tracking-tighter bg-clip-text text-transparent bg-linear-to-l from-white to-white/20">
+              ACADEMY.
+            </h2>
+            <div className="space-y-12">
+              {education.map((edu, i) => (
+                <div key={i} className="group space-y-2">
+                  <div className="flex justify-between items-center border-b border-white/10 pb-4 group-hover:border-orange-500/50 transition-colors">
+                    <h4 className="text-2xl font-black uppercase text-orange-400">
+                      {edu.degree}
+                    </h4>
+                    <span className="text-xs font-black text-white/30">
+                      {edu.year}
+                    </span>
+                  </div>
+                  <p className="text-lg font-bold text-white/60">
+                    {edu.institution}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Contact Footer */}
+        <footer id="contact" className="py-32 border-t border-white/10 mt-32">
+          <div className="max-w-7xl mx-auto flex flex-col items-center text-center space-y-12">
+            <h2 className="text-7xl md:text-[12vw] font-black tracking-tighter leading-none uppercase">
+              LET'S{" "}
+              <span className="bg-clip-text text-transparent bg-linear-to-r from-pink-500 to-orange-400">
+                CREATE
+              </span>
+              .
+            </h2>
+            <a
+              href={`mailto:${contact.email}`}
+              className="text-2xl md:text-5xl font-black underline underline-offset-8 decoration-pink-500 decoration-4 hover:text-pink-500 transition-colors"
+            >
+              {contact.email}
+            </a>
+            <div className="flex flex-wrap justify-center gap-12 pt-12">
+              {Object.entries(social).map(([platform, url], i) => (
                 <a
                   key={i}
-                  href={url}
-                  className="p-4 bg-white/10 backdrop-blur-sm rounded-full hover:bg-white/20 transition-all hover:scale-110"
+                  href={url as string}
+                  className="text-xs font-black uppercase tracking-[0.4em] text-white/30 hover:text-white transition-colors"
                 >
-                  <Globe className="w-6 h-6" />
+                  {platform}
                 </a>
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* Desktop Projects */}
-        <section className="py-32 px-10 bg-black/20 backdrop-blur-sm">
-          <div className="max-w-7xl mx-auto">
-            <h2 className="text-7xl font-black mb-20 text-center bg-clip-text text-transparent bg-gradient-to-r from-pink-300 to-orange-300">
-              work.
-            </h2>
-            <div className="grid grid-cols-2 gap-12">
-              {projects.map((project, index) => (
-                <div
-                  key={index}
-                  className="group relative bg-white/5 backdrop-blur-md rounded-[40px] p-10 border border-white/10 hover:border-pink-400/50 transition-all hover:scale-[1.02]"
-                >
-                  <h3 className="text-4xl font-black mb-4 text-pink-200 tracking-tight">
-                    {project.name}
-                  </h3>
-                  <p className="text-lg text-gray-300 mb-8 leading-relaxed max-w-lg">
-                    {project.description}
-                  </p>
-                  <div className="flex gap-4">
-                    <button className="px-8 py-3 bg-gradient-to-r from-pink-500 to-orange-500 rounded-full font-bold shadow-lg shadow-pink-500/30 flex items-center gap-2 hover:gap-4 transition-all">
-                      View Project <ExternalLink className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+            <div className="pt-32 text-[9px] font-black text-white/20 uppercase tracking-[0.5em]">
+              CREATIVE STUDIO © 2025 ALL RIGHTS RESERVED
             </div>
           </div>
-        </section>
-
-        {/* Desktop Skills */}
-        <section className="py-32 px-10">
-          <div className="max-w-6xl mx-auto text-center">
-            <h2 className="text-6xl font-black mb-16 text-white tracking-tighter">
-              capability stack.
-            </h2>
-            <div className="flex flex-wrap justify-center gap-4">
-              {skills.map((skill, i) => (
-                <div
-                  key={i}
-                  className="px-10 py-5 bg-gradient-to-r from-pink-500/20 to-orange-500/20 backdrop-blur-md rounded-2xl border border-pink-400/30 text-2xl font-bold hover:scale-110 transition-transform cursor-default"
-                >
-                  {skill.name}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        </footer>
       </div>
-
       <style jsx global>{`
         @keyframes blob {
           0% {

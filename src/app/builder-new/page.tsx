@@ -86,7 +86,7 @@ export default function ModernBuilderPage() {
   // Redirect if not authenticated
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push("/auth/login?callbackUrl=/builder-new");
+      router.push("/");
     }
   }, [status, router]);
 
@@ -212,13 +212,13 @@ export default function ModernBuilderPage() {
   }
 
   const sections = [
-    { id: "personal", label: "Personal", icon: User },
-    { id: "experience", label: "Experience", icon: Briefcase },
-    { id: "skills", label: "Skills", icon: Wrench },
-    { id: "projects", label: "Projects", icon: Layers },
-    { id: "education", label: "Education", icon: GraduationCap },
-    { id: "contact", label: "Contact", icon: Phone },
-    { id: "social", label: "Social", icon: Share2 },
+    { id: "personal", label: "Identity", icon: User },
+    { id: "experience", label: "History", icon: Briefcase },
+    { id: "skills", label: "Expertise", icon: Wrench },
+    { id: "projects", label: "Work", icon: Layers },
+    { id: "education", label: "Academics", icon: GraduationCap },
+    { id: "contact", label: "Reach", icon: Phone },
+    { id: "social", label: "Connect", icon: Share2 },
   ];
 
   return (
@@ -301,7 +301,7 @@ export default function ModernBuilderPage() {
           >
             <div className="absolute inset-0 bg-linear-to-r from-blue-400/20 to-purple-400/20 -translate-x-full group-hover:translate-x-0 transition-transform duration-700" />
             <Rocket className="w-4 h-4 fill-current relative z-10" />
-            <span className="relative z-10">Launch to World</span>
+            <span className="relative z-10">Deploy Site</span>
           </button>
         </div>
       </header>

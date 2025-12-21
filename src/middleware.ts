@@ -24,9 +24,9 @@ export async function middleware(request: NextRequest) {
         });
 
         if (!token) {
-            // Redirect to login if not authenticated
-            const url = new URL('/auth/login', request.url);
-            url.searchParams.set('callbackUrl', pathname);
+            // Redirect to home page (Marketing site) if session terminates or is invalid
+            // This ensures the user "stays in the app" by seeing the landing page
+            const url = new URL('/', request.url);
             return NextResponse.redirect(url);
         }
     }

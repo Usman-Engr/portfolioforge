@@ -14,42 +14,73 @@ import DynamicFlowTemplate from "@/components/templates/DynamicFlowTemplate";
 import GridMasterTemplate from "@/components/templates/GridMasterTemplate";
 
 /**
- * Template renderer utility
- * Dynamically renders the appropriate template component based on template ID
+ * Normalizes portfolio data to handle legacy and new structures
  */
-export function renderTemplate(templateId: string, data: PortfolioData) {
+function normalizeData(data: any): PortfolioData {
+  if (!data) return {} as PortfolioData;
+
+  // Handle case where data might be nested inside a 'data' property (legacy structure)
+  const baseData = data.data || data;
+
+  const normalized: PortfolioData = {
+    personal: baseData.personal || {},
+    contact: baseData.contact || {},
+    social: baseData.social || baseData.contact || {}, // Fallback social to contact for legacy support
+    skills: Array.isArray(baseData.skills)
+      ? baseData.skills.map((s: any) =>
+          typeof s === "string" ? { name: s, level: 5 } : s
+        )
+      : [],
+    projects: Array.isArray(baseData.projects) ? baseData.projects : [],
+    experience: Array.isArray(baseData.experience) ? baseData.experience : [],
+    education: Array.isArray(baseData.education) ? baseData.education : [],
+  };
+
+  // Ensure contact fields are present in social if missing
+  const platforms = ["linkedin", "github", "twitter", "instagram"];
+  platforms.forEach((platform) => {
+    if (!normalized.social[platform] && (normalized.contact as any)[platform]) {
+      normalized.social[platform] = (normalized.contact as any)[platform];
+    }
+  });
+
+  return normalized;
+}
+
+export function renderTemplate(templateId: string, data: any) {
+  const normalizedData = normalizeData(data);
+
   switch (templateId) {
     case "minimal-pro":
-      return <MinimalProTemplate data={data} />;
+      return <MinimalProTemplate data={normalizedData} />;
     case "gradient-pro":
-      // @ts-ignore - Template uses different data structure
-      return <GradientProTemplate data={{ data }} />;
+      return <GradientProTemplate data={normalizedData} />;
     case "modern-tech":
-      // @ts-ignore - Template uses different data structure
-      return <ModernTechTemplate data={{ data }} />;
+      return <ModernTechTemplate data={normalizedData} />;
     case "creative-studio":
-      // @ts-ignore - Template uses different data structure
-      return <CreativeStudioTemplate data={{ data }} />;
+      return <CreativeStudioTemplate data={normalizedData} />;
     case "luxe-horizon":
-      return <LuxeHorizonTemplate data={data} />;
+      return <LuxeHorizonTemplate data={normalizedData} />;
     case "brutalist-pulse":
-      return <BrutalistPulseTemplate data={data} />;
+      return <BrutalistPulseTemplate data={normalizedData} />;
     case "aero-glass":
-      return <AeroGlassTemplate data={data} />;
+      return <AeroGlassTemplate data={normalizedData} />;
     case "neon-drive":
-      return <NeonDriveTemplate data={data} />;
+      return <NeonDriveTemplate data={normalizedData} />;
     case "professional-cv":
-      return <ProfessionalCVTemplate data={data} />;
+      return <ProfessionalCVTemplate data={normalizedData} />;
     case "organic-sage":
-      return <OrganicSageTemplate data={data} />;
+      return <OrganicSageTemplate data={normalizedData} />;
     case "mono-focus":
-      return <MonoFocusTemplate data={data} />;
+      return <MonoFocusTemplate data={normalizedData} />;
     case "dynamic-flow":
-      return <DynamicFlowTemplate data={data} />;
+      return <DynamicFlowTemplate data={normalizedData} />;
     case "grid-master":
-      return <GridMasterTemplate data={data} />;
+      return <GridMasterTemplate data={normalizedData} />;
+    case "studio-elite":
+      return <ProfessionalCVTemplate data={normalizedData} />;
     default:
-      return <MinimalProTemplate data={data} />;
+      return <MinimalProTemplate data={normalizedData} />;
   }
 }
 
@@ -84,6 +115,8 @@ export function getTemplateComponent(templateId: string) {
       return DynamicFlowTemplate;
     case "grid-master":
       return GridMasterTemplate;
+    case "studio-elite":
+      return ProfessionalCVTemplate;
     default:
       return MinimalProTemplate;
   }
@@ -107,6 +140,7 @@ export function isValidTemplateId(templateId: string): boolean {
     "organic-sage",
     "dynamic-flow",
     "grid-master",
+    "studio-elite",
   ];
   return validIds.includes(templateId);
 }
