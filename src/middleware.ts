@@ -5,7 +5,7 @@ import { getToken } from 'next-auth/jwt';
 // Protected routes that require authentication
 const protectedRoutes = ['/dashboard', '/builder'];
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // Check if the route is protected
@@ -14,20 +14,17 @@ export async function proxy(request: NextRequest) {
     );
 
     if (isProtectedRoute) {
-        // Use process.env.NEXTAUTH_SECRET or a fallback for development
-        // WARNING: In production, always ensure NEXTAUTH_SECRET is set in environment vars.
-        const secret = process.env.NEXTAUTH_SECRET || 'development_secret_reforge_2025';
-        
         const token = await getToken({
             req: request,
-            secret: secret,
+            secret: process.env.NEXTAUTH_SECRET,
         });
 
         if (!token) {
-            // Redirect to home page (Marketing site) if session terminates or is invalid
-            // This ensures the user "stays in the app" by seeing the landing page
-            const url = new URL('/', request.url);
-            return NextResponse.redirect(url);
+            // Redirect to login and carry the original URL as callbackUrl
+            // so the user lands back where they wanted after authenticating.
+            const loginUrl = new URL('/auth/login', request.url);
+            loginUrl.searchParams.set('callbackUrl', pathname);
+            return NextResponse.redirect(loginUrl);
         }
     }
 

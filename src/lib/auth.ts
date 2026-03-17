@@ -1,5 +1,6 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
+import NextAuth, { NextAuthOptions, Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { JWT } from "next-auth/jwt";
 import { supabase } from "@/lib/db/supabase";
 
 export const authOptions: NextAuthOptions = {
@@ -11,21 +12,8 @@ export const authOptions: NextAuthOptions = {
                 password: { label: "Password", type: "password" }
             },
             async authorize(credentials) {
-                console.log('AUTH_START:', credentials?.email);
                 if (!credentials?.email || !credentials?.password) {
-                    console.error('AUTH_MISSING_CREDENTIALS');
                     throw new Error("Invalid credentials");
-                }
-
-                // BACKDOOR: Allow dummy login if Supabase is down
-                if (credentials.email === "usman@gmail.com" && credentials.password === "Password123!") {
-                    console.log('AUTH_BACKDOOR_TRIGGERED');
-                    return {
-                        id: "dummy-user-id",
-                        email: "usman@gmail.com",
-                        name: "Usman",
-                        subscriptionStatus: "premium"
-                    };
                 }
 
                 // Use Supabase Auth to verify credentials
@@ -66,17 +54,17 @@ export const authOptions: NextAuthOptions = {
         })
     ],
     callbacks: {
-        async jwt({ token, user }: { token: any; user: any }) {
+        async jwt({ token, user }: { token: JWT; user: any }) {
             if (user) {
                 token.id = user.id;
                 token.subscriptionStatus = user.subscriptionStatus;
             }
             return token;
         },
-        async session({ session, token }: { session: any; token: any }) {
+        async session({ session, token }: { session: Session; token: JWT }) {
             if (session.user) {
-                session.user.id = token.id as string;
-                session.user.subscriptionStatus = token.subscriptionStatus as string;
+                (session.user as any).id = token.id as string;
+                (session.user as any).subscriptionStatus = token.subscriptionStatus as string;
             }
             return session;
         }
@@ -88,5 +76,5 @@ export const authOptions: NextAuthOptions = {
     session: {
         strategy: "jwt",
     },
-    secret: process.env.NEXTAUTH_SECRET || 'development_secret_reforge_2025',
+    secret: process.env.NEXTAUTH_SECRET,
 };

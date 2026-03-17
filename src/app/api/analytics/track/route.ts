@@ -1,8 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/db/supabase';
+import { supabaseAdmin } from '@/lib/db/supabase-admin';
+
+// Simple in-memory rate limiter
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 30;
+const ipRequestCounts = new Map<string, { count: number; timestamp: number }>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const record = ipRequestCounts.get(ip);
+
+  if (!record || now - record.timestamp > RATE_LIMIT_WINDOW_MS) {
+    ipRequestCounts.set(ip, { count: 1, timestamp: now });
+    return false;
+  }
+
+  if (record.count >= MAX_REQUESTS_PER_WINDOW) {
+    return true;
+  }
+
+  record.count += 1;
+  return false;
+}
+
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get('x-forwarded-for') || (request as any).ip || 'unknown-ip';
+    
+    if (isRateLimited(ip)) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+
     const body = await request.json();
 
     const {
@@ -16,7 +46,7 @@ export async function POST(request: NextRequest) {
       timeSpent
     } = body;
 
-    // Validate required fields
+    // Validate required fields and UUID format
     if (!portfolioId || !sessionId) {
       return NextResponse.json(
         { error: 'Missing required fields' },
@@ -24,8 +54,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!uuidRegex.test(portfolioId)) {
+        return NextResponse.json(
+            { error: 'Invalid portfolioId format' },
+            { status: 400 }
+        );
+    }
+
     // Insert view record
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('portfolio_views')
       .insert({
         portfolio_id: portfolioId,
@@ -49,7 +86,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update portfolio view count
-    await supabase.rpc('increment_view_count', {
+    await supabaseAdmin.rpc('increment_view_count', {
       portfolio_id: portfolioId
     });
 
@@ -66,6 +103,12 @@ export async function POST(request: NextRequest) {
 // Update time spent on page
 export async function PATCH(request: NextRequest) {
   try {
+    const ip = request.headers.get('x-forwarded-for') || (request as any).ip || 'unknown-ip';
+    
+    if (isRateLimited(ip)) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+
     const body = await request.json();
 
     const { viewId, timeSpent } = body;
@@ -77,7 +120,14 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const { error } = await supabase
+    if (!uuidRegex.test(viewId)) {
+        return NextResponse.json(
+            { error: 'Invalid viewId format' },
+            { status: 400 }
+        );
+    }
+
+    const { error } = await supabaseAdmin
       .from('portfolio_views')
       .update({ time_spent: timeSpent })
       .eq('id', viewId);

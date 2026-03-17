@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { supabase } from '@/lib/db/supabase';
+import { supabaseAdmin } from '@/lib/db/supabase-admin';
 
 export async function GET(
     req: Request,
@@ -15,7 +15,7 @@ export async function GET(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { data: portfolio, error } = await supabase
+        const { data: portfolio, error } = await supabaseAdmin
             .from('app_portfolios')
             .select('*')
             .eq('id', id)
@@ -49,7 +49,7 @@ export async function PUT(
         const { slug, data, templateId, isPublished } = body;
 
         // Verify ownership
-        const { data: existing, error: ownershipError } = await supabase
+        const { data: existing, error: ownershipError } = await supabaseAdmin
             .from('app_portfolios')
             .select('id')
             .eq('id', id)
@@ -62,7 +62,7 @@ export async function PUT(
 
         // Check if slug is taken by another portfolio
         if (slug) {
-            const { data: slugCheck, error: slugError } = await supabase
+            const { data: slugCheck, error: slugError } = await supabaseAdmin
                 .from('app_portfolios')
                 .select('id')
                 .eq('slug', slug)
@@ -95,7 +95,7 @@ export async function PUT(
             }
         }
 
-        const { data: updated, error: updateError } = await supabase
+        const { data: updated, error: updateError } = await supabaseAdmin
             .from('app_portfolios')
             .update(updateData)
             .eq('id', id)
@@ -127,7 +127,7 @@ export async function DELETE(
         }
 
         // Verify ownership and delete
-        const { error } = await supabase
+        const { error } = await supabaseAdmin
             .from('app_portfolios')
             .delete()
             .eq('id', id)

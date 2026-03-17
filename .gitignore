@@ -30,8 +30,43 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files — never commit secrets
 .env*
+.env.local
+.env*.local
+
+# debug and dev scripts (local only)
+/build_log.txt
+/build_help.txt
+/signup-output.txt
+/test-output.txt
+/test-signup.json
+/test-signup-man.json
+/check-auth-status.mjs
+/check-portfolios.mjs
+/check-users.mjs
+/confirm-email.mjs
+/create-tables.mjs
+/debug-env.js
+/fix-env.js
+/init-db-direct.mjs
+/list-roles.mjs
+/list-triggers.mjs
+/manual-signup.mjs
+/query-auth.mjs
+/signup-node.mjs
+/test-auth-signup.mjs
+/test-db-connection-v2.mjs
+/test-db-connection.mjs
+/test-db.js
+/verify-direct-db.mjs
+/verify-project-id.mjs
+/verify-trigger-worked.mjs
+/verify-trigger.mjs
+/verify-user-creation.mjs
+/apply-permissions.mjs
+/apply-schema-updates.mjs
+/apply-trigger.mjs
 
 # vercel
 .vercel

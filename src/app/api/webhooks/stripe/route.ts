@@ -1,7 +1,7 @@
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { supabase } from '@/lib/db/supabase';
+import { supabaseAdmin } from '@/lib/db/supabase-admin';
 import Stripe from 'stripe';
 
 export const dynamic = 'force-dynamic';
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
 
         try {
             // Record purchase in database
-            const { error } = await supabase
+            const { error } = await supabaseAdmin
                 .from('template_purchases')
                 .insert({
                     user_id: userId,
