@@ -16,7 +16,7 @@ export default function BrutalistPulseTemplate({
   return (
     <div className="min-h-screen bg-[#F0F0F0] text-black font-mono selection:bg-yellow-400 border-8 md:border-16 border-black overflow-x-hidden relative">
       {/* Mobile Header Toggle */}
-      <div className="md:hidden fixed top-6 right-6 z-[60]">
+      <div className="md:hidden fixed top-6 right-6 z-60 no-print">
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className="p-3 bg-yellow-400 border-4 border-black text-black shadow-[4px_4px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all"
@@ -53,7 +53,7 @@ export default function BrutalistPulseTemplate({
       )}
 
       {/* Desktop Header */}
-      <header className="hidden lg:flex fixed top-0 w-full z-50 p-6 justify-between items-center pointer-events-none">
+      <header className="hidden lg:flex fixed top-0 w-full z-50 p-6 justify-between items-center pointer-events-none no-print">
         <div className="pointer-events-auto bg-black text-white px-6 py-3 border-4 border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all cursor-crosshair">
           <span className="text-2xl font-black uppercase italic tracking-tighter">
             {personal.name || "UNNAMED"}
@@ -80,7 +80,7 @@ export default function BrutalistPulseTemplate({
             <div className="absolute top-4 right-4 text-[10px] font-black uppercase tracking-widest text-gray-300">
               01 / IDENTITY
             </div>
-            <h1 className="text-5xl lg:text-7xl font-black uppercase italic tracking-tighter leading-[0.9] lg:leading-none mb-4 break-words">
+            <h1 className="text-5xl lg:text-7xl font-black uppercase italic tracking-tighter leading-[0.9] lg:leading-none mb-4 wrap-break-word">
               {personal.title?.split(" ")[0]} <br className="lg:hidden" />{" "}
               {personal.title?.split(" ").slice(1).join(" ") || "DEV"}
             </h1>
@@ -136,7 +136,7 @@ export default function BrutalistPulseTemplate({
                   Featured Work
                 </span>
                 <div className="space-y-4">
-                  <h3 className="text-5xl font-black uppercase italic tracking-tighter leading-none break-words">
+                  <h3 className="text-5xl font-black uppercase italic tracking-tighter leading-none wrap-break-word">
                     {project.name}
                   </h3>
                   <p className="text-sm font-bold leading-tight">
@@ -186,30 +186,41 @@ export default function BrutalistPulseTemplate({
           </div>
 
           {/* Experience Banner - Mobile: Stacked / Desktop: Marquee */}
-          <div className="col-span-1 lg:col-span-3 lg:row-span-1 border-4 lg:border-8 border-black bg-white overflow-hidden flex flex-col lg:flex-row lg:items-center min-h-[200px] lg:min-h-0">
-            {/* Mobile List */}
-            <div className="lg:hidden p-6 space-y-6">
-              {experience.slice(0, 2).map((exp, i) => (
-                <div
-                  key={i}
-                  className="border-b-4 border-black pb-4 last:border-0"
-                >
-                  <div className="text-2xl font-black uppercase italic leading-none">
-                    {exp.role}
+            <div className="flex flex-col lg:flex-row lg:items-center min-h-[200px] lg:min-h-0 print:block">
+              {/* Mobile List Style (Visible in Print) */}
+              <div className="print:block p-6 space-y-6 hidden">
+                {experience.map((exp, i) => (
+                  <div key={i} className="border-b-4 border-black pb-4 last:border-0">
+                    <div className="text-2xl font-black uppercase italic leading-none">
+                      {exp.role}
+                    </div>
+                    <div className="text-xs font-black uppercase text-gray-400">
+                      {exp.company}
+                    </div>
                   </div>
-                  <div className="text-xs font-black uppercase text-gray-400">
-                    {exp.company}
+                ))}
+              </div>
+              
+              {/* Original Mobile List (Only for Screen) */}
+              <div className="lg:hidden p-6 space-y-6 print:hidden">
+                {experience.slice(0, 2).map((exp, i) => (
+                  <div key={i} className="border-b-4 border-black pb-4 last:border-0">
+                    <div className="text-2xl font-black uppercase italic leading-none">
+                      {exp.role}
+                    </div>
+                    <div className="text-xs font-black uppercase text-gray-400">
+                      {exp.company}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
 
-            {/* Desktop Marquee */}
-            <motion.div
-              animate={{ x: [0, -1000] }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="hidden lg:flex items-center gap-20 py-8 px-10 whitespace-nowrap"
-            >
+              {/* Desktop Marquee (Only for Screen) */}
+              <motion.div
+                animate={{ x: [0, -1000] }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                className="hidden lg:flex items-center gap-20 py-8 px-10 whitespace-nowrap print:hidden"
+              >
               {experience.map((exp, i) => (
                 <div key={i} className="flex items-center gap-10">
                   <span className="text-4xl font-black uppercase tracking-tighter">

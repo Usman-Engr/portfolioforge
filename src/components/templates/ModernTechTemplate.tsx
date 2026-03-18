@@ -41,7 +41,7 @@ export default function ModernTechTemplate({ data }: { data: PortfolioData }) {
 
       <div className="relative z-10">
         {/* Navigation / Header */}
-        <nav className="sticky top-0 z-50 px-6 py-4 md:py-6 backdrop-blur-md bg-gray-950/50 border-b border-white/5">
+        <nav className="sticky top-0 z-50 px-6 py-4 md:py-6 backdrop-blur-md bg-gray-950/50 border-b border-white/5 no-print">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-linear-to-br from-cyan-500 to-purple-600 p-px">

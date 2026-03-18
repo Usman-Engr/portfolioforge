@@ -105,7 +105,7 @@ export default function AeroGlassTemplate({ data }: { data: PortfolioData }) {
                         alt={project.name}
                       />
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent" />
                     <div className="absolute bottom-4 left-4 right-4">
                       <h3 className="text-xl font-bold mb-1">{project.name}</h3>
                       <div className="flex flex-wrap gap-2">
@@ -159,7 +159,7 @@ export default function AeroGlassTemplate({ data }: { data: PortfolioData }) {
         </div>
 
         {/* Mobile Bottom Bar */}
-        <div className="fixed bottom-0 left-0 right-0 bg-[#0f172a]/80 backdrop-blur-xl border-t border-white/10 p-4 pb-8 flex justify-around text-[10px] font-bold uppercase tracking-wide text-gray-500 z-50">
+        <div className="fixed bottom-0 left-0 right-0 bg-[#0f172a]/80 backdrop-blur-xl border-t border-white/10 p-4 pb-8 flex justify-around text-[10px] font-bold uppercase tracking-wide text-gray-500 z-50 no-print">
           <div className="flex flex-col items-center gap-1 text-blue-400">
             <User className="w-5 h-5" />
             <span>Profile</span>
@@ -177,7 +177,7 @@ export default function AeroGlassTemplate({ data }: { data: PortfolioData }) {
       {/* DESKTOP LAYOUT (Hidden on Mobile) */}
       <div className="hidden lg:block h-screen w-screen overflow-hidden relative font-sans selection:bg-blue-500/30">
         {/* Top Menu Bar (MacOS style) */}
-        <div className="fixed top-0 w-full h-8 bg-white/10 backdrop-blur-md border-b border-white/10 z-50 flex items-center justify-between px-4 text-[11px] font-bold text-white/80">
+        <div className="fixed top-0 w-full h-8 bg-white/10 backdrop-blur-md border-b border-white/10 z-50 flex items-center justify-between px-4 text-[11px] font-bold text-white/80 no-print">
           <div className="flex items-center gap-4">
             <div className="flex gap-2">
               <div className="w-3 h-3 rounded-full bg-red-400/80" />
@@ -204,7 +204,7 @@ export default function AeroGlassTemplate({ data }: { data: PortfolioData }) {
               animate={{ opacity: 1, x: 0 }}
               className="bg-black/20 backdrop-blur-2xl border border-white/10 rounded-[32px] p-8 flex flex-col items-center text-center shadow-2xl h-fit"
             >
-              <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-br from-blue-400 to-purple-500 mb-6 shadow-lg shadow-blue-500/20">
+              <div className="w-24 h-24 rounded-full p-1 bg-linear-to-br from-blue-400 to-purple-500 mb-6 shadow-lg shadow-blue-500/20">
                 <div className="w-full h-full rounded-full overflow-hidden bg-black/50">
                   {personal.avatarUrl ? (
                     <img
@@ -325,12 +325,12 @@ export default function AeroGlassTemplate({ data }: { data: PortfolioData }) {
         </main>
 
         {/* Desktop Dock */}
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl px-6 py-3 flex items-center gap-4 shadow-2xl z-50">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-2xl border border-white/20 rounded-2xl px-6 py-3 flex items-center gap-4 shadow-2xl z-50 no-print">
           {[User, Code, Briefcase, Mail].map((Icon, i) => (
             <motion.button
               key={i}
               whileHover={{ scale: 1.2, y: -10 }}
-              className="w-12 h-12 rounded-xl bg-gradient-to-b from-white/10 to-white/5 border border-white/10 flex items-center justify-center hover:bg-white/20 hover:border-white/30 transition-all shadow-lg"
+              className="w-12 h-12 rounded-xl bg-linear-to-b from-white/10 to-white/5 border border-white/10 flex items-center justify-center hover:bg-white/20 hover:border-white/30 transition-all shadow-lg"
             >
               <Icon className="w-5 h-5 text-white/90" />
             </motion.button>
