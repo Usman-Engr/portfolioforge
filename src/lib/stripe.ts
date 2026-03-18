@@ -1,8 +1,12 @@
 import Stripe from 'stripe';
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder';
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
-export const stripe = new Stripe(stripeSecretKey, {
+if (!stripeSecretKey && process.env.NODE_ENV === 'production') {
+    throw new Error("STRIPE_SECRET_KEY is missing!");
+}
+
+export const stripe = new Stripe(stripeSecretKey!, {
     apiVersion: '2025-01-27.acacia' as any, // Use latest or specific version
     typescript: true,
 });

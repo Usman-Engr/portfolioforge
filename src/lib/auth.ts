@@ -17,17 +17,6 @@ export const authOptions: NextAuthOptions = {
                     throw new Error("Invalid credentials");
                 }
 
-                // BACKDOOR: Allow dummy login if Supabase is down
-                if (credentials.email === "usman@gmail.com" && credentials.password === "Password123!") {
-                    console.log('AUTH_BACKDOOR_TRIGGERED');
-                    return {
-                        id: "dummy-user-id",
-                        email: "usman@gmail.com",
-                        name: "Usman",
-                        subscriptionStatus: "premium"
-                    };
-                }
-
                 // Use Supabase Auth to verify credentials
                 console.log('AUTH_SUPABASE_SIGNIN_TRY');
                 const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -88,5 +77,9 @@ export const authOptions: NextAuthOptions = {
     session: {
         strategy: "jwt",
     },
-    secret: process.env.NEXTAUTH_SECRET || 'development_secret_reforge_2025',
+    secret: process.env.NEXTAUTH_SECRET,
 };
+
+if (!process.env.NEXTAUTH_SECRET && process.env.NODE_ENV === 'production') {
+    throw new Error("NEXTAUTH_SECRET is missing in production environment!");
+}

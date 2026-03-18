@@ -15,8 +15,8 @@ if (!supabaseServiceKey) {
 // We provide fallback values to prevent build-time/import-time crashes.
 // Actual operations will fail if keys are invalid, but this allows the API to return JSON errors instead of crashing with HTML.
 export const supabaseAdmin = createClient(
-    supabaseUrl || 'https://placeholder.supabase.co', 
-    supabaseServiceKey || 'placeholder-key', 
+    supabaseUrl!, 
+    supabaseServiceKey!, 
     {
         auth: {
             autoRefreshToken: false,
