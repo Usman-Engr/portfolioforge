@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, use, Suspense } from "react";
 import { renderTemplateForExport } from "@/lib/utils/template-renderer";
+import { renderResumeTemplateForExport } from "@/lib/utils/resume-template-renderer";
 import { PortfolioData } from "@/lib/types/portfolio";
 import { Loader2 } from "lucide-react";
 
@@ -202,7 +203,9 @@ function RenderContent({ templateId }: { templateId: string }) {
       <div className={`export-render-shell ${isPdfMode ? "pdf-mode" : ""}`}>
         <div className="export-canvas-print-frame">
           <div className="export-canvas-root">
-            {renderTemplateForExport(templateId, data)}
+            {templateId.startsWith("resume-")
+              ? renderResumeTemplateForExport(templateId, data as any)
+              : renderTemplateForExport(templateId, data)}
           </div>
         </div>
       </div>

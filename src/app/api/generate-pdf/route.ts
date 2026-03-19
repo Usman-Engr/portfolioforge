@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 import { getTemplateById } from "@/lib/templates";
+import { getResumeTemplateById } from "@/lib/resume-templates";
 
 const VIEWPORT = {
   width: 1200,
@@ -31,7 +32,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (typeof templateId !== "string" || !getTemplateById(templateId)) {
+    if (
+      typeof templateId !== "string" ||
+      (!getTemplateById(templateId) && !getResumeTemplateById(templateId))
+    ) {
       return NextResponse.json({ error: "Invalid templateId" }, { status: 400 });
     }
 

@@ -28,7 +28,11 @@ export const Navbar = () => {
     await signOut({ callbackUrl: "/" });
   };
 
-  if (pathname?.startsWith("/export")) {
+  if (
+    pathname?.startsWith("/export") ||
+    pathname?.startsWith("/resume-builder") ||
+    pathname?.startsWith("/builder-new")
+  ) {
     return null;
   }
 
