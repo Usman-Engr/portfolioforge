@@ -44,7 +44,7 @@ export default function GridMasterTemplate({ data }: { data: PortfolioData }) {
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: 0, opacity: 1, x: "-50%" }}
             exit={{ y: -100, opacity: 0 }}
-            className={`fixed top-12 left-1/2 z-50 bg-white/90 backdrop-blur-3xl border-2 border-black rounded-full px-6 md:px-8 py-3 md:py-4 flex flex-col lg:flex-row items-center gap-6 lg:gap-10 shadow-2xl w-[90%] lg:w-auto transform -translate-x-1/2 lg:transform-none ${
+            className={`fixed top-12 left-1/2 z-50 bg-white/90 backdrop-blur-3xl border-2 border-black rounded-full px-6 md:px-8 py-3 md:py-4 fixed-canvas-row items-center gap-6 lg:gap-10 shadow-2xl w-[90%] lg:w-auto transform -translate-x-1/2 lg:transform-none ${
               isMenuOpen ? "flex translate-x-[-50%]!" : "hidden lg:flex"
             }`}
           >
@@ -55,7 +55,7 @@ export default function GridMasterTemplate({ data }: { data: PortfolioData }) {
               </span>
             </div>
             <div className="w-full h-px md:w-px md:h-6 bg-black/10" />
-            <div className="flex flex-col md:flex-row gap-4 md:gap-6 text-[10px] font-black uppercase tracking-widest text-zinc-400 items-center">
+            <div className="fixed-canvas-row gap-4 md:gap-6 text-[10px] font-black uppercase tracking-widest text-zinc-400 items-center">
               <span className="text-black inline-flex items-center gap-2 underline underline-offset-4 decoration-2">
                 <LayoutGrid className="w-3 h-3" /> All_Works
               </span>
@@ -71,7 +71,7 @@ export default function GridMasterTemplate({ data }: { data: PortfolioData }) {
       </AnimatePresence>
 
       {/* Title Section */}
-      <div className="mt-24 md:mt-32 mb-12 md:mb-20 space-y-8 max-w-7xl mx-auto flex flex-col items-start md:items-end md:flex-row justify-between gap-6 md:gap-10">
+      <div className="mt-24 md:mt-32 mb-12 md:mb-20 space-y-8 max-w-7xl mx-auto fixed-canvas-row items-end justify-between gap-6 md:gap-10">
         <div className="space-y-4 w-full md:w-auto">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white text-[9px] md:text-[10px] font-black uppercase tracking-widest italic rounded-md">
             <Camera className="w-3 h-3" />
@@ -189,7 +189,7 @@ export default function GridMasterTemplate({ data }: { data: PortfolioData }) {
               </span>
               <a
                 href={`mailto:${contact.email}`}
-                className="text-xl md:text-2xl font-black uppercase underline decoration-4 underline-offset-8 hover:italic transition-all block break-all"
+                className="text-xl md:text-2xl font-black uppercase underline decoration-4 underline-offset-8 hover:italic transition-all fixed-canvas-contact-anchor"
               >
                 {contact.email}
               </a>

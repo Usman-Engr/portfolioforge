@@ -34,7 +34,8 @@ export default function GradientProTemplate({ data }: { data: PortfolioData }) {
 
       <div className="relative z-10">
         {/* Floating Header */}
-        <nav className="sticky top-6 mx-auto max-w-5xl px-6 py-4 z-50">
+        {/* Navigation */}
+        <nav className="sticky top-6 mx-auto px-6 py-4 z-50">
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-8 py-4 flex items-center justify-between shadow-2xl">
             <span className="text-xl font-black tracking-tighter uppercase italic bg-clip-text text-transparent bg-linear-to-r from-indigo-400 to-purple-400">
               {personal.name?.split(" ")[0] || "PRO"}
@@ -86,23 +87,23 @@ export default function GradientProTemplate({ data }: { data: PortfolioData }) {
           <p className="max-w-3xl text-lg md:text-2xl text-white/60 leading-relaxed font-medium">
             {personal.bio}
           </p>
-          <div className="flex flex-wrap justify-center gap-8 py-4">
-            <div className="flex items-center gap-3 text-white/40">
+          <div className="fixed-canvas-row justify-center gap-8 py-4">
+            <div className="fixed-canvas-row items-center gap-3 text-white/40 min-w-0">
               <MapPin className="w-5 h-5" />{" "}
-              <span className="text-sm font-bold uppercase tracking-widest">
+              <span className="text-sm font-bold uppercase tracking-widest fixed-canvas-nowrap">
                 {personal.location}
               </span>
             </div>
-            <div className="flex items-center gap-3 text-white/40">
+            <div className="fixed-canvas-row items-center gap-3 text-white/40 min-w-0">
               <Mail className="w-5 h-5" />{" "}
-              <span className="text-sm font-bold uppercase tracking-widest">
+              <span className="text-sm font-bold uppercase tracking-widest fixed-canvas-ellipsis">
                 {contact.email}
               </span>
             </div>
           </div>
         </header>
 
-        <main className="max-w-7xl mx-auto px-6 space-y-40 pb-40">
+        <main className="px-6 space-y-40 pb-40">
           {/* Projects - Large Interactive Cards */}
           <section id="work" className="space-y-20">
             <div className="space-y-4">

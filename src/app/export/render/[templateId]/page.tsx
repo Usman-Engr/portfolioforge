@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, use, Suspense } from "react";
-import { renderTemplate } from "@/lib/utils/template-renderer";
+import { renderTemplateForExport } from "@/lib/utils/template-renderer";
 import { PortfolioData } from "@/lib/types/portfolio";
 import { Loader2 } from "lucide-react";
 
@@ -14,6 +14,7 @@ function RenderContent({ templateId }: { templateId: string }) {
   const searchParams = useSearchParams();
   const [data, setData] = useState<PortfolioData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const isPdfMode = searchParams.get("pdf") === "1";
 
   useEffect(() => {
     try {
@@ -33,12 +34,33 @@ function RenderContent({ templateId }: { templateId: string }) {
 
   useEffect(() => {
     if (data) {
-      // Signal to Puppeteer that we are ready
-      const timer = setTimeout(() => {
-        (window as any).status = "ready";
+      let cancelled = false;
+
+      const signalReady = async () => {
+        if ("fonts" in document) {
+          await document.fonts.ready;
+        }
+
+        await new Promise<void>((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+        });
+
+        if (cancelled) return;
+
+        (
+          window as Window & { __PDF_READY__?: boolean; status?: string }
+        ).__PDF_READY__ = true;
+        (
+          window as Window & { __PDF_READY__?: boolean; status?: string }
+        ).status = "ready";
         document.documentElement.classList.add("ready-for-pdf");
-      }, 1000);
-      return () => clearTimeout(timer);
+      };
+
+      signalReady();
+
+      return () => {
+        cancelled = true;
+      };
     }
   }, [data]);
 
@@ -62,82 +84,127 @@ function RenderContent({ templateId }: { templateId: string }) {
   return (
     <>
       <style jsx global>{`
-          @media print {
-            @page {
-              size: A4;
-              margin: 15mm 10mm !important;
-            }
-            body {
-              margin: 0 !important;
-              padding: 0 !important;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-              background: white !important;
-            }
-            .no-print {
-              display: none !important;
-            }
-            
-            /* Add some breathing room at the start of the document */
-            .template-container {
-              padding-top: 5mm !important;
-            }
-            
-            /* Ensure layouts don't shrink but keep their flex/grid nature */
-            .template-container > div {
-              padding: 0 !important;
-              margin: 0 !important;
-              width: 210mm !important;
-              max-width: none !important;
-              min-height: auto !important;
-              background: white !important;
-              display: block !important;
-            }
+        :root {
+          --export-canvas-width: 1200px;
+          --export-a4-scale: 0.661417;
+        }
 
-            /* Reclaim space by reducing inner padding for print */
-            .template-container div {
-              padding-left: 10px !important;
-              padding-right: 10px !important;
-            }
-            .template-container header, 
-            .template-container section, 
-            .template-container .section {
-               padding-left: 0 !important;
-               padding-right: 0 !important;
-            }
+        html,
+        body {
+          margin: 0 !important;
+          padding: 0 !important;
+          background: #fff !important;
+        }
 
-            /* Prevent awkward splits for cards and headers */
-            h1, h2, h3, h4, 
-            .card, .project-card, .skill-card, .experience-item, 
-            header, section, .section, [class*="bg-white/5"] {
-              break-inside: avoid !important;
-              page-break-inside: avoid !important;
-            }
+        .export-render-shell {
+          width: 100%;
+          min-height: 100vh;
+          display: flex;
+          justify-content: center;
+          align-items: flex-start;
+          background: #fff;
+        }
 
-            .template-container {
-              width: 210mm !important;
-              height: auto !important;
-              overflow: visible !important;
-              background: transparent !important;
-            }
+        .export-canvas-print-frame {
+          width: var(--export-canvas-width);
+          overflow: visible;
+          background: #fff;
+        }
+
+        .export-canvas-root {
+          width: var(--export-canvas-width);
+          margin: 0;
+          padding: 0;
+          background: #fff;
+          transform-origin: top left;
+        }
+
+        .pdf-mode.export-render-shell {
+          width: 210mm;
+          min-height: 297mm;
+          display: block;
+          margin: 0;
+          padding: 0;
+          background: #fff;
+        }
+
+        .pdf-mode .export-canvas-print-frame {
+          width: 210mm;
+          min-height: 297mm;
+          overflow: hidden;
+          margin: 0;
+          padding: 0;
+          background: #fff;
+        }
+
+        .pdf-mode .export-canvas-root {
+          width: var(--export-canvas-width);
+          margin: 0;
+          padding: 0;
+          transform: scale(var(--export-a4-scale));
+          transform-origin: top left;
+        }
+
+        @media print {
+          @page {
+            size: A4;
+            margin: 0;
           }
-          
-          /* Ensure backgrounds are rendered exactly */
-          * {
+
+          html,
+          body {
+            width: 210mm !important;
+            min-height: 297mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            background: white !important;
           }
 
-          /* General PDF container constraints */
-          .template-container {
-            width: 210mm !important;
-            min-height: 100vh;
-            margin: 0 auto;
+          .no-print {
+            display: none !important;
           }
-        `}</style>
-      
-      <div className="template-container">
-        {renderTemplate(templateId, data)}
+
+          .export-render-shell {
+            width: 210mm !important;
+            min-height: 297mm !important;
+            display: block !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+          }
+
+          .export-canvas-print-frame {
+            width: 210mm !important;
+            min-height: 297mm !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          .export-canvas-root {
+            width: var(--export-canvas-width) !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            transform: scale(var(--export-a4-scale)) !important;
+            transform-origin: top left !important;
+          }
+        }
+
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+      `}</style>
+
+      <div className={`export-render-shell ${isPdfMode ? "pdf-mode" : ""}`}>
+        <div className="export-canvas-print-frame">
+          <div className="export-canvas-root">
+            {renderTemplateForExport(templateId, data)}
+          </div>
+        </div>
       </div>
     </>
   );
@@ -147,11 +214,13 @@ export default function RenderPage({ params }: PageProps) {
   const { templateId } = use(params);
 
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen bg-white">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen bg-white">
+          <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
+        </div>
+      }
+    >
       <RenderContent templateId={templateId} />
     </Suspense>
   );

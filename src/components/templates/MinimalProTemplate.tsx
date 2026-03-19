@@ -151,8 +151,8 @@ export default function MinimalProTemplate({ data }: { data: PortfolioData }) {
       </div>
 
       {/* DESKTOP LAYOUT (lg+) - The Original Bento Grid */}
-      <div className="hidden lg:block p-12 lg:p-24 relative w-full">
-        <div className="max-w-4xl mx-auto space-y-12">
+      <div className="hidden lg:block p-12 lg:p-16 relative w-full">
+        <div className="space-y-12">
           {/* Desktop Header */}
           <header className="flex flex-col items-center text-center space-y-8 mb-20">
             <motion.div
@@ -174,8 +174,8 @@ export default function MinimalProTemplate({ data }: { data: PortfolioData }) {
               >
                 {personal.name}
               </motion.h1>
-              <p className="text-xl font-medium text-zinc-500 max-w-xl mx-auto">
-                {personal.title} — {personal.location}
+              <p className="text-xl font-medium text-zinc-500">
+                {personal.title} {personal.location && `— ${personal.location}`}
               </p>
             </div>
             <div className="flex gap-3">
@@ -248,7 +248,7 @@ export default function MinimalProTemplate({ data }: { data: PortfolioData }) {
                 <span className="text-xs font-black uppercase tracking-widest text-zinc-400 block mb-2">
                   Available At
                 </span>
-                <span className="text-lg font-black break-all">
+                <span className="text-lg font-black fixed-canvas-contact-anchor">
                   {contact.email}
                 </span>
               </div>

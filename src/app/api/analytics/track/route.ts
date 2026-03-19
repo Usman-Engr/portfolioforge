@@ -1,9 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/db/supabase';
+import { z } from 'zod';
+import { checkRateLimit, getClientIp } from '@/lib/security/rate-limit';
+
+const TrackBodySchema = z.object({
+  portfolioId: z.string().uuid(),
+  sessionId: z.string().min(8).max(255),
+  referrer: z.string().max(2048).optional().nullable(),
+  deviceType: z.enum(['mobile', 'tablet', 'desktop']).optional(),
+  browser: z.string().max(100).optional(),
+  country: z.string().max(100).optional().nullable(),
+  city: z.string().max(100).optional().nullable(),
+  timeSpent: z.number().int().min(0).max(86400).optional(),
+});
+
+const TrackPatchSchema = z.object({
+  viewId: z.string().uuid(),
+  timeSpent: z.number().int().min(0).max(86400),
+});
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const ip = getClientIp(request);
+    const rate = checkRateLimit(`analytics:post:${ip}`, {
+      windowMs: 60_000,
+      max: 120,
+    });
+
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        { status: 429 }
+      );
+    }
+
+    const parsed = TrackBodySchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid request body' },
+        { status: 400 }
+      );
+    }
 
     const {
       portfolioId,
@@ -14,15 +51,7 @@ export async function POST(request: NextRequest) {
       country,
       city,
       timeSpent
-    } = body;
-
-    // Validate required fields
-    if (!portfolioId || !sessionId) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
+    } = parsed.data;
 
     // Insert view record
     const { data, error } = await supabase
@@ -66,16 +95,28 @@ export async function POST(request: NextRequest) {
 // Update time spent on page
 export async function PATCH(request: NextRequest) {
   try {
-    const body = await request.json();
+    const ip = getClientIp(request);
+    const rate = checkRateLimit(`analytics:patch:${ip}`, {
+      windowMs: 60_000,
+      max: 180,
+    });
 
-    const { viewId, timeSpent } = body;
-
-    if (!viewId || timeSpent === undefined) {
+    if (!rate.allowed) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Too many requests' },
+        { status: 429 }
+      );
+    }
+
+    const parsed = TrackPatchSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid request body' },
         { status: 400 }
       );
     }
+
+    const { viewId, timeSpent } = parsed.data;
 
     const { error } = await supabase
       .from('portfolio_views')

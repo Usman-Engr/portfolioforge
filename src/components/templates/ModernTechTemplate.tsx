@@ -273,7 +273,7 @@ export default function ModernTechTemplate({ data }: { data: PortfolioData }) {
 
         {/* Unified Responsive Footer */}
         <footer className="mt-40 border-t border-white/5 py-20 px-6">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-12 text-center md:text-left">
+          <div className="max-w-7xl mx-auto fixed-canvas-row items-center justify-between gap-12 text-left">
             <div className="space-y-4">
               <h4 className="text-4xl md:text-6xl font-black tracking-tighter uppercase italic">
                 Let's <span className="text-cyan-400">Connect</span>.
@@ -282,14 +282,14 @@ export default function ModernTechTemplate({ data }: { data: PortfolioData }) {
                 Seeking 2024 opportunities
               </p>
             </div>
-            <div className="flex flex-col items-center md:items-end gap-6">
+            <div className="flex flex-col items-end gap-6">
               <a
                 href={`mailto:${contact.email}`}
                 className="text-2xl md:text-3xl font-bold bg-white text-black px-10 py-5 rounded-2xl hover:bg-cyan-500 hover:text-white transition-all shadow-2xl flex items-center gap-4"
               >
                 Send Message <ArrowRight className="w-6 h-6" />
               </a>
-              <div className="flex gap-4">
+              <div className="fixed-canvas-row gap-4">
                 {Object.entries(social).map(([platform, url], i) => (
                   <a
                     key={i}
@@ -302,7 +302,7 @@ export default function ModernTechTemplate({ data }: { data: PortfolioData }) {
               </div>
             </div>
           </div>
-          <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-[9px] font-black text-gray-600 uppercase tracking-widest">
+          <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-white/5 fixed-canvas-row items-center justify-between gap-4 text-[9px] font-black text-gray-600 uppercase tracking-widest">
             <span>© 2025 {personal.name} Studio</span>
             <span>
               Ref_0XY_{personal.name?.replace(" ", "_").toUpperCase()}

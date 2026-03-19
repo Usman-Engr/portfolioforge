@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS public.app_portfolios (
 CREATE TABLE IF NOT EXISTS public.app_payments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES public.app_users(id) ON DELETE CASCADE,
-  stripe_payment_id TEXT NOT NULL,
+  stripe_payment_id TEXT NOT NULL UNIQUE,
   amount INTEGER NOT NULL,
   status TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -84,7 +84,57 @@ ALTER TABLE public.app_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.app_portfolios ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.app_payments ENABLE ROW LEVEL SECURITY;
 
--- Create RLS policies (Open for now as we use direct connection)
-CREATE POLICY "Enable all access for app_users" ON public.app_users FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Enable all access for app_portfolios" ON public.app_portfolios FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Enable all access for app_payments" ON public.app_payments FOR ALL USING (true) WITH CHECK (true);
+-- Replace permissive RLS policies with secure ownership-based policies
+DROP POLICY IF EXISTS "Enable all access for app_users" ON public.app_users;
+DROP POLICY IF EXISTS "Enable all access for app_portfolios" ON public.app_portfolios;
+DROP POLICY IF EXISTS "Enable all access for app_payments" ON public.app_payments;
+DROP POLICY IF EXISTS "Users can view own profile" ON public.app_users;
+DROP POLICY IF EXISTS "Users can update own profile" ON public.app_users;
+DROP POLICY IF EXISTS "System can insert user profiles" ON public.app_users;
+DROP POLICY IF EXISTS "Anyone can view published portfolios" ON public.app_portfolios;
+DROP POLICY IF EXISTS "Users can insert own portfolios" ON public.app_portfolios;
+DROP POLICY IF EXISTS "Users can update own portfolios" ON public.app_portfolios;
+DROP POLICY IF EXISTS "Users can delete own portfolios" ON public.app_portfolios;
+DROP POLICY IF EXISTS "Users can view own payments" ON public.app_payments;
+
+CREATE POLICY "Users can view own profile"
+  ON public.app_users
+  FOR SELECT
+  USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile"
+  ON public.app_users
+  FOR UPDATE
+  USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "System can insert user profiles"
+  ON public.app_users
+  FOR INSERT
+  WITH CHECK (true);
+
+CREATE POLICY "Anyone can view published portfolios"
+  ON public.app_portfolios
+  FOR SELECT
+  USING (is_published = true OR auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own portfolios"
+  ON public.app_portfolios
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own portfolios"
+  ON public.app_portfolios
+  FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own portfolios"
+  ON public.app_portfolios
+  FOR DELETE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can view own payments"
+  ON public.app_payments
+  FOR SELECT
+  USING (auth.uid() = user_id);

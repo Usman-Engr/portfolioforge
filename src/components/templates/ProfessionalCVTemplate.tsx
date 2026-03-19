@@ -38,7 +38,7 @@ export default function ProfessionalCVTemplate({
 
         <div className="p-8 md:p-16 lg:p-24 space-y-16">
           {/* Header Section */}
-          <header className="flex flex-col md:flex-row justify-between items-start gap-12 border-b border-gray-100 pb-16">
+          <header className="flex fixed-canvas-row justify-between items-start gap-12 border-b border-gray-100 pb-16">
             <div className="space-y-4 max-w-2xl">
               <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-slate-900 leading-none">
                 {personal.name || "Full Name"}
@@ -51,28 +51,32 @@ export default function ProfessionalCVTemplate({
               </p>
             </div>
 
-            <div className="space-y-4 text-right">
+            <div className="space-y-4 text-right min-w-0">
               {contact.email && (
-                <div className="flex items-center justify-end gap-3 text-slate-600">
-                  <span className="text-sm font-medium">{contact.email}</span>
+                <div className="fixed-canvas-row items-center justify-end gap-3 text-slate-600 min-w-0">
+                  <span className="text-sm font-medium fixed-canvas-ellipsis">
+                    {contact.email}
+                  </span>
                   <Mail className="w-4 h-4 text-slate-400" />
                 </div>
               )}
               {contact.phone && (
-                <div className="flex items-center justify-end gap-3 text-slate-600">
-                  <span className="text-sm font-medium">{contact.phone}</span>
+                <div className="fixed-canvas-row items-center justify-end gap-3 text-slate-600 min-w-0">
+                  <span className="text-sm font-medium fixed-canvas-nowrap">
+                    {contact.phone}
+                  </span>
                   <Phone className="w-4 h-4 text-slate-400" />
                 </div>
               )}
               {personal.location && (
-                <div className="flex items-center justify-end gap-3 text-slate-600">
-                  <span className="text-sm font-medium">
+                <div className="fixed-canvas-row items-center justify-end gap-3 text-slate-600 min-w-0">
+                  <span className="text-sm font-medium fixed-canvas-ellipsis">
                     {personal.location}
                   </span>
                   <MapPin className="w-4 h-4 text-slate-400" />
                 </div>
               )}
-              <div className="flex justify-end gap-3 pt-4">
+              <div className="fixed-canvas-row justify-end gap-3 pt-4">
                 {social.linkedin && (
                   <a
                     href={social.linkedin}
@@ -114,7 +118,7 @@ export default function ProfessionalCVTemplate({
                   {experience.map((exp, i) => (
                     <div
                       key={i}
-                      className="group flex flex-col md:flex-row gap-6"
+                      className="group flex fixed-canvas-row items-start gap-6"
                     >
                       <div className="md:w-32 pt-1 text-xs font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">
                         {exp.duration}

@@ -49,6 +49,7 @@ CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(session_token);
 CREATE INDEX IF NOT EXISTS idx_accounts_user_id ON accounts(user_id);
 CREATE INDEX IF NOT EXISTS idx_template_purchases_user_id ON template_purchases(user_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_template_purchases_stripe_payment_id ON template_purchases(stripe_payment_id);
 
 -- Update RLS policies for new tables
 ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;

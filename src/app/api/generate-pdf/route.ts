@@ -1,13 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
+import { getTemplateById } from "@/lib/templates";
+
+const VIEWPORT = {
+  width: 1200,
+  height: 1600,
+  deviceScaleFactor: 2,
+} as const;
+
+const NAVIGATION_TIMEOUT_MS = 60_000;
+const RENDER_READY_TIMEOUT_MS = 20_000;
+
+type GeneratePdfBody = {
+  templateId: string;
+  data: unknown;
+};
 
 export async function POST(req: NextRequest) {
+  let browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null;
+
   try {
-    const { templateId, data } = await req.json();
+    const body = (await req.json()) as GeneratePdfBody;
+    const templateId = body?.templateId;
+    const data = body?.data;
 
     if (!templateId || !data) {
       return NextResponse.json(
         { error: "Missing templateId or portfolio data" },
+        { status: 400 }
+      );
+    }
+
+    if (typeof templateId !== "string" || !getTemplateById(templateId)) {
+      return NextResponse.json({ error: "Invalid templateId" }, { status: 400 });
+    }
+
+    if (typeof data !== "object" || data === null) {
+      return NextResponse.json(
+        { error: "Invalid portfolio data format" },
         { status: 400 }
       );
     }
@@ -19,42 +49,71 @@ export async function POST(req: NextRequest) {
 
     // Base64 encode data to pass in URL
     const encodedData = Buffer.from(JSON.stringify(data)).toString("base64");
-    const renderUrl = `${baseUrl}/export/render/${templateId}?data=${encodedData}`;
+    const renderUrl = `${baseUrl}/export/render/${templateId}?data=${encodeURIComponent(encodedData)}&pdf=1`;
 
-    console.log(`[PDF] Launching browser to render: ${baseUrl}/export/render/${templateId}`);
+    console.log(`[PDF] Rendering template: ${templateId}`);
 
     // Launch puppeteer
-    const browser = await puppeteer.launch({
+    browser = await puppeteer.launch({
       headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
 
     const page = await browser.newPage();
 
-    // Set a fixed desktop width to trigger the desktop layout
-    await page.setViewport({
-      width: 1200,
-      height: 1600,
-      deviceScaleFactor: 2,
-    });
+    // Lock viewport to fixed canvas contract.
+    await page.setViewport(VIEWPORT);
+    // Keep screen media for PDF parity with the live template layout.
+    await page.emulateMediaType("screen");
 
-    // 1. Wait for various load states with a longer timeout for stability
+    // Wait for full network idle and hydration.
     await page.goto(renderUrl, {
-      waitUntil: ["networkidle2", "domcontentloaded", "load"],
-      timeout: 60000,
+      waitUntil: ["networkidle0", "domcontentloaded", "load"],
+      timeout: NAVIGATION_TIMEOUT_MS,
     });
 
-    // 2. Extra safety for fonts and layout signal
-    await page.evaluateHandle('document.fonts.ready');
-    await page.waitForFunction('window.status === "ready"', {
-      timeout: 10000,
+    // Ensure the export canvas root exists before checking readiness flags.
+    await page.waitForSelector(".export-canvas-root", {
+      timeout: RENDER_READY_TIMEOUT_MS,
     });
 
-    // 3. Generate PDF with layout lock settings
+    // Deterministic readiness gate: fonts and render signal must both be ready.
+    await page.waitForFunction(
+      () => {
+        const pdfReady = (window as Window & { __PDF_READY__?: boolean })
+          .__PDF_READY__;
+        const fontsReady =
+          !("fonts" in document) ||
+          (document as Document & { fonts?: FontFaceSet }).fonts?.status ===
+            "loaded";
+        return Boolean(pdfReady && fontsReady);
+      },
+      { timeout: RENDER_READY_TIMEOUT_MS }
+    );
+
+    // Keep one extra paint cycle to avoid late style application races.
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+        })
+    );
+
+    await page.waitForNetworkIdle({
+      idleTime: 500,
+      timeout: RENDER_READY_TIMEOUT_MS,
+    });
+
+    // Allow any motion effects to settle before capture.
+    await page.evaluate(
+      () => new Promise<void>((resolve) => setTimeout(resolve, 2200))
+    );
+
+    // Generate PDF following the export route print contract.
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
-      preferCSSPageSize: true, // Follow @media print with zoom
+      preferCSSPageSize: true,
       margin: {
         top: "0px",
         right: "0px",
@@ -63,20 +122,27 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    await browser.close();
+    await page.close();
 
-    // Return the PDF blob
-    return new NextResponse(pdfBuffer as any, {
+    // Return the PDF file directly.
+    const responseBuffer = Buffer.from(pdfBuffer);
+
+    return new NextResponse(responseBuffer, {
       headers: {
-        "Content-Type": "application/json", // We return a buffer that the frontend will blob-ify
+        "Content-Type": "application/pdf",
         "Content-Disposition": `attachment; filename="portfolio-${templateId}.pdf"`,
+        "Cache-Control": "no-store",
       },
     });
   } catch (error: any) {
-    console.error("[PDF] Generation Error:", error);
+    console.error("[PDF] Generation Error");
     return NextResponse.json(
-      { error: "Failed to generate PDF", details: error.message },
+      { error: "Failed to generate PDF" },
       { status: 500 }
     );
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 }

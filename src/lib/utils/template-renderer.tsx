@@ -1,4 +1,6 @@
 import { PortfolioData } from "@/lib/types/portfolio";
+import { ReactNode } from "react";
+import CanvasWrapper from "@/components/CanvasWrapper";
 import MinimalProTemplate from "@/components/templates/MinimalProTemplate";
 import GradientProTemplate from "@/components/templates/GradientProTemplate";
 import ModernTechTemplate from "@/components/templates/ModernTechTemplate";
@@ -28,7 +30,7 @@ function normalizeData(data: any): PortfolioData {
     social: baseData.social || baseData.contact || {}, // Fallback social to contact for legacy support
     skills: Array.isArray(baseData.skills)
       ? baseData.skills.map((s: any) =>
-          typeof s === "string" ? { name: s, level: 5 } : s
+          typeof s === "string" ? { name: s, level: 5 } : s,
         )
       : [],
     projects: Array.isArray(baseData.projects) ? baseData.projects : [],
@@ -47,9 +49,10 @@ function normalizeData(data: any): PortfolioData {
   return normalized;
 }
 
-export function renderTemplate(templateId: string, data: any) {
-  const normalizedData = normalizeData(data);
-
+function resolveTemplateNode(
+  templateId: string,
+  normalizedData: PortfolioData,
+): ReactNode {
   switch (templateId) {
     case "minimal-pro":
       return <MinimalProTemplate data={normalizedData} />;
@@ -82,6 +85,23 @@ export function renderTemplate(templateId: string, data: any) {
     default:
       return <MinimalProTemplate data={normalizedData} />;
   }
+}
+
+export function renderTemplate(templateId: string, data: any) {
+  const normalizedData = normalizeData(data);
+  const templateNode = resolveTemplateNode(templateId, normalizedData);
+
+  // Helper to wrap templates in CanvasWrapper
+  const wrapTemplate = (template: ReactNode) => (
+    <CanvasWrapper>{template}</CanvasWrapper>
+  );
+
+  return wrapTemplate(templateNode);
+}
+
+export function renderTemplateForExport(templateId: string, data: any) {
+  const normalizedData = normalizeData(data);
+  return resolveTemplateNode(templateId, normalizedData);
 }
 
 /**
