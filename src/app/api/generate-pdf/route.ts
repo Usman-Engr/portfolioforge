@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 import { getTemplateById } from "@/lib/templates";
 import { getResumeTemplateById } from "@/lib/resume-templates";
 
+// Basic config
+const isProduction = process.env.NODE_ENV === 'production';
+
+// VIEWPORT and other constants...
 const VIEWPORT = {
   width: 1200,
   height: 1600,
@@ -10,7 +15,7 @@ const VIEWPORT = {
 } as const;
 
 const NAVIGATION_TIMEOUT_MS = 60_000;
-const RENDER_READY_TIMEOUT_MS = 20_000;
+const RENDER_READY_TIMEOUT_MS = 30_000;
 
 type GeneratePdfBody = {
   templateId: string;
@@ -18,7 +23,7 @@ type GeneratePdfBody = {
 };
 
 export async function POST(req: NextRequest) {
-  let browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null;
+  let browser: any = null;
 
   try {
     const body = (await req.json()) as GeneratePdfBody;
@@ -39,28 +44,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid templateId" }, { status: 400 });
     }
 
-    if (typeof data !== "object" || data === null) {
-      return NextResponse.json(
-        { error: "Invalid portfolio data format" },
-        { status: 400 }
-      );
-    }
-
     // Determine the base URL for the render route
     const protocol = req.headers.get("x-forwarded-proto") || "http";
-    const host = req.headers.get("host") || "localhost:3000";
+    const host = req.headers.get("host") || "localhost:3002";
     const baseUrl = `${protocol}://${host}`;
 
     // Base64 encode data to pass in URL
     const encodedData = Buffer.from(JSON.stringify(data)).toString("base64");
     const renderUrl = `${baseUrl}/export/render/${templateId}?data=${encodeURIComponent(encodedData)}&pdf=1`;
 
-    console.log(`[PDF] Rendering template: ${templateId}`);
+    console.log(`[PDF] Rendering template: ${templateId} in ${isProduction ? 'PROD' : 'DEV'}`);
 
-    // Launch puppeteer
+    // Launch puppeteer with sparticuz/chromium config for Vercel
     browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: isProduction ? chromium.args : ["--no-sandbox", "--disable-setuid-sandbox"],
+      defaultViewport: isProduction ? (chromium as any).defaultViewport : VIEWPORT,
+      executablePath: isProduction ? await chromium.executablePath() : "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+      headless: isProduction ? (chromium as any).headless : true,
     });
 
     const page = await browser.newPage();

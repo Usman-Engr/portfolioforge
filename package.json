@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@octokit/rest": "^22.0.1",
+    "@sparticuz/chromium": "^143.0.4",
     "@stripe/react-stripe-js": "^5.4.0",
     "@stripe/stripe-js": "^8.5.2",
     "@supabase/supabase-js": "^2.84.0",
@@ -29,6 +30,7 @@
     "next-auth": "^4.24.13",
     "pg": "^8.16.3",
     "puppeteer": "^24.39.1",
+    "puppeteer-core": "^24.40.0",
     "raw-body": "^3.0.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
