@@ -390,7 +390,31 @@ function ResumeBuilderContent() {
       </header>
 
       {/* ─── MAIN AREA ─── */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+        
+        {/* Mobile-only Persistent Toggle Bar */}
+        <div className="lg:hidden flex items-center p-2 bg-[#0a0a0a] border-b border-white/5 shrink-0 z-40">
+          <div className="flex bg-white/5 rounded-xl p-1 w-full relative">
+            <button
+              onClick={() => setMobileTab("form")}
+              className={`flex-1 flex justify-center py-2 text-xs font-bold rounded-lg transition-all z-10 ${mobileTab === "form" ? "text-white" : "text-gray-500"}`}
+            >
+              Edit Details
+            </button>
+            <button
+              onClick={() => setMobileTab("preview")}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold rounded-lg transition-all z-10 ${mobileTab === "preview" ? "text-white" : "text-gray-500"}`}
+            >
+              <Eye className="w-3.5 h-3.5" />
+              Live Preview
+            </button>
+            <div
+              className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-blue-600 rounded-lg transition-all duration-300 pointer-events-none"
+              style={{ left: mobileTab === "form" ? "4px" : "calc(50%)" }}
+            />
+          </div>
+        </div>
+
         {/* ── Section Nav (desktop sidebar) ── */}
         <nav className="hidden lg:flex w-20 xl:w-24 border-r border-white/5 bg-[#0a0a0a] flex-col items-center py-6 gap-2 shrink-0">
           {SECTIONS.map(({ id, label, Icon }) => (
@@ -406,7 +430,6 @@ function ResumeBuilderContent() {
             >
               <Icon className="w-5 h-5" />
               <span className="text-[8px] font-bold uppercase tracking-wide leading-none">{label.split(" ")[0]}</span>
-              {/* Tooltip */}
               <div className="absolute left-full ml-3 px-2.5 py-1 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-xl">
                 {label}
               </div>
@@ -416,30 +439,6 @@ function ResumeBuilderContent() {
 
         {/* ── Form Panel ── */}
         <aside className={`w-full lg:w-[380px] xl:w-[420px] shrink-0 border-r border-white/5 bg-[#070707] flex flex-col ${mobileTab === "preview" ? "hidden lg:flex" : "flex"}`}>
-          
-          {/* Mobile UI Only: Tabs for Form / Preview */}
-          <div className="lg:hidden flex items-center p-2 bg-[#0a0a0a] border-b border-white/5 shrink-0">
-            <div className="flex bg-white/5 rounded-xl p-1 w-full relative">
-              <button
-                onClick={() => setMobileTab("form")}
-                className={`flex-1 flex justify-center py-2 text-xs font-bold rounded-lg transition-all z-10 ${mobileTab === "form" ? "text-white" : "text-gray-500"}`}
-              >
-                Edit Details
-              </button>
-              <button
-                onClick={() => setMobileTab("preview")}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-bold rounded-lg transition-all z-10 ${mobileTab === "preview" ? "text-white" : "text-gray-500"}`}
-              >
-                <Eye className="w-3.5 h-3.5" />
-                Live Preview
-              </button>
-              <div
-                className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-blue-600 rounded-lg transition-all duration-300 pointer-events-none"
-                style={{ left: mobileTab === "form" ? "4px" : "calc(50%)" }}
-              />
-            </div>
-          </div>
-
           <div className="flex-1 overflow-y-auto flex flex-col">
             {/* Mobile nav bar (horizontal sections) */}
             <div className="lg:hidden border-b border-white/5 bg-[#0a0a0a] flex items-center gap-1 px-3 py-2 overflow-x-auto shrink-0 scrollbar-hide">
@@ -457,108 +456,108 @@ function ResumeBuilderContent() {
               ))}
             </div>
 
-          <div className="p-5 md:p-7 flex-1">
-            <div className="mb-6">
-              <h2 className="text-xl font-black text-white uppercase italic tracking-tight">{currentSection.label}</h2>
-              <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest font-medium">Resume Section</p>
-            </div>
+            <div className="p-5 md:p-7 flex-1">
+              <div className="mb-6">
+                <h2 className="text-xl font-black text-white uppercase italic tracking-tight">{currentSection.label}</h2>
+                <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest font-medium">Resume Section</p>
+              </div>
 
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeSection}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 8 }}
-                transition={{ duration: 0.15 }}
-              >
-                {activeSection === "personal" && (
-                  <PersonalInfoResumeForm
-                    data={resumeData.personal}
-                    onChange={(personal) => setResumeData({ ...resumeData, personal })}
-                  />
-                )}
-                {activeSection === "summary" && (
-                  <SummaryForm
-                    data={resumeData.summary}
-                    onChange={(summary) => setResumeData({ ...resumeData, summary })}
-                  />
-                )}
-                {activeSection === "experience" && (
-                  <WorkExperienceForm
-                    data={resumeData.workExperience}
-                    onChange={(workExperience) => setResumeData({ ...resumeData, workExperience })}
-                  />
-                )}
-                {activeSection === "education" && (
-                  <ResumeEducationForm
-                    data={resumeData.education}
-                    onChange={(education) => setResumeData({ ...resumeData, education })}
-                  />
-                )}
-                {activeSection === "skills" && (
-                  <ResumeSkillsForm
-                    data={resumeData.skills}
-                    onChange={(skills) => setResumeData({ ...resumeData, skills })}
-                  />
-                )}
-                {activeSection === "certifications" && (
-                  <CertificationsForm
-                    data={resumeData.certifications}
-                    onChange={(certifications) => setResumeData({ ...resumeData, certifications })}
-                  />
-                )}
-                {activeSection === "languages" && (
-                  <LanguagesForm
-                    data={resumeData.languages}
-                    onChange={(languages) => setResumeData({ ...resumeData, languages })}
-                  />
-                )}
-              </motion.div>
-            </AnimatePresence>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeSection}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 8 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  {activeSection === "personal" && (
+                    <PersonalInfoResumeForm
+                      data={resumeData.personal}
+                      onChange={(personal) => setResumeData({ ...resumeData, personal })}
+                    />
+                  )}
+                  {activeSection === "summary" && (
+                    <SummaryForm
+                      data={resumeData.summary}
+                      onChange={(summary) => setResumeData({ ...resumeData, summary })}
+                    />
+                  )}
+                  {activeSection === "experience" && (
+                    <WorkExperienceForm
+                      data={resumeData.workExperience}
+                      onChange={(workExperience) => setResumeData({ ...resumeData, workExperience })}
+                    />
+                  )}
+                  {activeSection === "education" && (
+                    <ResumeEducationForm
+                      data={resumeData.education}
+                      onChange={(education) => setResumeData({ ...resumeData, education })}
+                    />
+                  )}
+                  {activeSection === "skills" && (
+                    <ResumeSkillsForm
+                      data={resumeData.skills}
+                      onChange={(skills) => setResumeData({ ...resumeData, skills })}
+                    />
+                  )}
+                  {activeSection === "certifications" && (
+                    <CertificationsForm
+                      data={resumeData.certifications}
+                      onChange={(certifications) => setResumeData({ ...resumeData, certifications })}
+                    />
+                  )}
+                  {activeSection === "languages" && (
+                    <LanguagesForm
+                      data={resumeData.languages}
+                      onChange={(languages) => setResumeData({ ...resumeData, languages })}
+                    />
+                  )}
+                </motion.div>
+              </AnimatePresence>
 
-            <div className="mt-8 pt-6 border-t border-white/5 flex justify-between">
-              {SECTIONS.findIndex((s) => s.id === activeSection) > 0 ? (
-                <button
-                  onClick={() => setActiveSection(SECTIONS[SECTIONS.findIndex((s) => s.id === activeSection) - 1].id)}
-                  className="flex items-center gap-2 text-xs text-gray-400 hover:text-white transition-colors font-bold uppercase tracking-widest"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  {SECTIONS[SECTIONS.findIndex((s) => s.id === activeSection) - 1].label}
-                </button>
-              ) : <div />}
-              {SECTIONS.findIndex((s) => s.id === activeSection) < SECTIONS.length - 1 && (
-                <button
-                  onClick={() => setActiveSection(SECTIONS[SECTIONS.findIndex((s) => s.id === activeSection) + 1].id)}
-                  className="flex items-center gap-2 text-xs text-blue-400 hover:text-blue-300 transition-colors font-bold uppercase tracking-widest ml-auto"
-                >
-                  {SECTIONS[SECTIONS.findIndex((s) => s.id === activeSection) + 1].label}
-                  <ChevronLeft className="w-4 h-4 rotate-180" />
-                </button>
-              )}
+              <div className="mt-8 pt-6 border-t border-white/5 flex justify-between">
+                {SECTIONS.findIndex((s) => s.id === activeSection) > 0 ? (
+                  <button
+                    onClick={() => setActiveSection(SECTIONS[SECTIONS.findIndex((s) => s.id === activeSection) - 1].id)}
+                    className="flex items-center gap-2 text-xs text-gray-400 hover:text-white transition-colors font-bold uppercase tracking-widest"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    {SECTIONS[SECTIONS.findIndex((s) => s.id === activeSection) - 1].label}
+                  </button>
+                ) : <div />}
+                {SECTIONS.findIndex((s) => s.id === activeSection) < SECTIONS.length - 1 && (
+                  <button
+                    onClick={() => setActiveSection(SECTIONS[SECTIONS.findIndex((s) => s.id === activeSection) + 1].id)}
+                    className="flex items-center gap-2 text-xs text-blue-400 hover:text-blue-300 transition-colors font-bold uppercase tracking-widest ml-auto"
+                  >
+                    {SECTIONS[SECTIONS.findIndex((s) => s.id === activeSection) + 1].label}
+                    <ChevronLeft className="w-4 h-4 rotate-180" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
         </aside>
 
-        {/* ── Live Preview (desktop & tablet, or mobile if tab=preview) ── */}
-        <section className={`flex-1 bg-slate-100/5 flex-col items-center justify-start py-8 overflow-auto ${mobileTab === "preview" ? "flex" : "hidden lg:flex"}`}>
-          {/* Mobile only: return to form button if needed, but we have tabs. Actually we can just show the preview container securely */}
-          
-          <div className={`transition-all duration-500 ${previewWidth} shrink-0 origin-top flex justify-center shadow-2xl mx-auto`}>
+        {/* ── Live Preview ── */}
+        <section className={`flex-1 bg-[#111111] flex flex-col items-center justify-start py-8 xl:py-12 overflow-auto ${mobileTab === "preview" ? "flex" : "hidden lg:flex"}`}>
+          <div className="w-full max-w-full flex justify-center px-4">
             <div 
-              className="bg-white rounded-sm" 
+              className="bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] transition-all duration-300 shrink-0" 
               style={{ 
-                // Scale dynamically for smaller viewports if preview tab is active
-                transform: typeof window !== "undefined" && window.innerWidth < 1280 
-                  ? `scale(${Math.max(0.4, Math.min(1, (window.innerWidth - 32) / 800))})` 
-                  : (previewDevice !== "desktop" ? "scale(0.8)" : "scale(1)"),
+                // Enhanced scaling for readability
+                transform: typeof window !== "undefined" && window.innerWidth < 1024
+                  ? `scale(${Math.min(1, (window.innerWidth - 48) / 794)})` // Fit to width with padding
+                  : (previewDevice !== "desktop" ? "scale(0.85)" : "scale(1)"),
                 transformOrigin: "top center",
                 width: "210mm",
                 minHeight: "297mm",
                 overflow: "hidden"
               }}
             >
-              {renderResumeTemplate(selectedTemplateId, resumeData)}
+              <div className="h-full w-full">
+                {renderResumeTemplate(selectedTemplateId, resumeData)}
+              </div>
             </div>
           </div>
         </section>
