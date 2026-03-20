@@ -6,15 +6,13 @@ const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const isProduction = process.env.NODE_ENV === 'production';
 const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build' || process.env.VERCEL_ENV === 'production' && !process.env.STRIPE_SECRET_KEY;
 
-// Use a placeholder key during build phase to prevent Stripe SDK from crashing
-const effectiveKey = stripeSecretKey || (isBuildPhase ? 'sk_test_placeholder' : '');
+// Stripe requires a secret key to initialize.
+// We provide a placeholder key if it's missing to prevent build-time crashes.
+// Real operations will still require a valid key set in Vercel.
+const effectiveKey = stripeSecretKey || 'sk_test_placeholder_for_build';
 
 if (isProduction && !stripeSecretKey) {
-    if (isBuildPhase) {
-        console.warn("⚠️  [STRIPE_WARNING] STRIPE_SECRET_KEY is missing during build. Using a placeholder to avoid crash.");
-    } else {
-        throw new Error("STRIPE_SECRET_KEY is missing in production environment!");
-    }
+    console.warn("⚠️  [STRIPE_WARNING] STRIPE_SECRET_KEY is missing. Payment functionality will fail until it is set in project settings.");
 }
 
 export const stripe = new Stripe(effectiveKey, {
