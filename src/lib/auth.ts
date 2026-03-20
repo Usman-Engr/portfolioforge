@@ -73,6 +73,14 @@ export const authOptions: NextAuthOptions = {
     secret: process.env.NEXTAUTH_SECRET,
 };
 
-if (!process.env.NEXTAUTH_SECRET && process.env.NODE_ENV === 'production') {
-    throw new Error("NEXTAUTH_SECRET is missing in production environment!");
+// Special check for production environment
+const isProduction = process.env.NODE_ENV === 'production';
+const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build' || process.env.VERCEL_ENV === 'production' && !process.env.NEXTAUTH_SECRET;
+
+if (isProduction && !process.env.NEXTAUTH_SECRET) {
+    if (isBuildPhase) {
+        console.warn("⚠️  [AUTH_WARNING] NEXTAUTH_SECRET is missing during build. Ensure it is set in Vercel project settings.");
+    } else {
+        throw new Error("NEXTAUTH_SECRET is missing in production environment!");
+    }
 }
