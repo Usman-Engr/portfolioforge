@@ -16,7 +16,10 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { usePathname } from "next/navigation";
+
 export const Navbar = () => {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { data: session, status } = useSession();
@@ -24,6 +27,14 @@ export const Navbar = () => {
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/" });
   };
+
+  if (
+    pathname?.startsWith("/export") ||
+    pathname?.startsWith("/resume-builder") ||
+    pathname?.startsWith("/builder-new")
+  ) {
+    return null;
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-100 bg-black/50 backdrop-blur-2xl border-b border-white/5">

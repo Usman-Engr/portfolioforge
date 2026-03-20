@@ -17,6 +17,7 @@ import {
   Settings,
   Sparkles,
   Download,
+  FileText,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ConfirmModal from "@/components/ui/ConfirmModal";
@@ -37,24 +38,43 @@ interface Portfolio {
   updated_at: string;
 }
 
+interface Resume {
+  id: string;
+  title: string;
+  template_id: string;
+  data: any;
+  created_at: string;
+  updated_at: string;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [resumes, setResumes] = useState<Resume[]>([]);
+  const [activeTab, setActiveTab] = useState<"portfolios" | "resumes">(
+    "portfolios",
+  );
   const [loading, setLoading] = useState(true);
+
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingResumeId, setDeletingResumeId] = useState<string | null>(null);
   const [publishingId, setPublishingId] = useState<string | null>(null);
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showIntelligenceModal, setShowIntelligenceModal] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+
   const [intelligencePortfolio, setIntelligencePortfolio] =
     useState<Portfolio | null>(null);
   const [previewPortfolio, setPreviewPortfolio] = useState<Portfolio | null>(
-    null
+    null,
   );
+
   const [portfolioToDelete, setPortfolioToDelete] = useState<Portfolio | null>(
-    null
+    null,
   );
+  const [resumeToDelete, setResumeToDelete] = useState<Resume | null>(null);
   const [greeting, setGreeting] = useState("");
 
   useEffect(() => {
@@ -68,7 +88,9 @@ export default function DashboardPage() {
     }
 
     if (status === "authenticated") {
-      loadPortfolios();
+      Promise.all([loadPortfolios(), loadResumes()]).finally(() =>
+        setLoading(false),
+      );
     }
   }, [status, router]);
 
@@ -76,13 +98,21 @@ export default function DashboardPage() {
     try {
       const response = await fetch("/api/portfolios");
       if (response.ok) {
-        const data = await response.json();
-        setPortfolios(data);
+        setPortfolios(await response.json());
       }
     } catch (error) {
       console.error("Failed to load portfolios:", error);
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const loadResumes = async () => {
+    try {
+      const response = await fetch("/api/resumes");
+      if (response.ok) {
+        setResumes(await response.json());
+      }
+    } catch (error) {
+      console.error("Failed to load resumes:", error);
     }
   };
 
@@ -92,27 +122,47 @@ export default function DashboardPage() {
   };
 
   const confirmDelete = async () => {
-    if (!portfolioToDelete) return;
-
-    setDeletingId(portfolioToDelete.id);
-    try {
-      const response = await fetch(`/api/portfolios/${portfolioToDelete.id}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        setPortfolios(portfolios.filter((p) => p.id !== portfolioToDelete.id));
+    if (portfolioToDelete) {
+      setDeletingId(portfolioToDelete.id);
+      try {
+        const response = await fetch(
+          `/api/portfolios/${portfolioToDelete.id}`,
+          { method: "DELETE" },
+        );
+        if (response.ok) {
+          setPortfolios(
+            portfolios.filter((p) => p.id !== portfolioToDelete.id),
+          );
+          toast.success("Project archived successfully.");
+        } else {
+          toast.error("Failed to archive project.");
+        }
+      } catch (error) {
+        toast.error("A system error occurred during archiving.");
+      } finally {
+        setDeletingId(null);
         setShowDeleteModal(false);
         setPortfolioToDelete(null);
-        toast.success("Project archived successfully.");
-      } else {
-        toast.error("Failed to archive project.");
       }
-    } catch (error) {
-      console.error("Delete error:", error);
-      toast.error("A system error occurred during archiving.");
-    } finally {
-      setDeletingId(null);
+    } else if (resumeToDelete) {
+      setDeletingResumeId(resumeToDelete.id);
+      try {
+        const response = await fetch(`/api/resumes/${resumeToDelete.id}`, {
+          method: "DELETE",
+        });
+        if (response.ok) {
+          setResumes(resumes.filter((r) => r.id !== resumeToDelete.id));
+          toast.success("Resume deleted successfully.");
+        } else {
+          toast.error("Failed to delete resume.");
+        }
+      } catch (error) {
+        toast.error("A system error occurred during deleting.");
+      } finally {
+        setDeletingResumeId(null);
+        setShowDeleteModal(false);
+        setResumeToDelete(null);
+      }
     }
   };
 
@@ -140,7 +190,7 @@ export default function DashboardPage() {
             description: portfolio.is_published
               ? "Visibility has been restricted."
               : "Your site is now accessible to the world.",
-          }
+          },
         );
       } else {
         toast.error("Failed to update project status.");
@@ -220,7 +270,7 @@ export default function DashboardPage() {
               label="Total Views"
               value={portfolios.reduce(
                 (sum, p) => sum + (p.view_count || 0),
-                0
+                0,
               )}
               icon={<Eye className="w-5 h-5 text-blue-400" />}
               trend="+12%"
@@ -243,63 +293,186 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* ── Resume Builder Entry Point ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="mb-10 relative overflow-hidden rounded-[28px] border border-white/8 bg-gradient-to-r from-[#0d1a33] via-[#0f1628] to-[#0a0a0a] p-6 md:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5"
+        >
+          {/* Background glow */}
+          <div className="absolute top-0 left-0 w-[300px] h-full bg-blue-600/5 blur-[80px] pointer-events-none" />
+          <div className="relative z-10 flex items-center gap-5">
+            <div className="w-12 h-12 shrink-0 bg-blue-600/15 border border-blue-500/20 rounded-2xl flex items-center justify-center">
+              <FileText className="w-6 h-6 text-blue-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <h2 className="text-lg font-black text-white uppercase italic tracking-tight">
+                  Resume Builder
+                </h2>
+                <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 bg-blue-500/15 border border-blue-500/25 text-blue-400 rounded-full">
+                  New
+                </span>
+              </div>
+              <p className="text-sm text-gray-400">
+                Build a print-ready PDF resume from 5 professional templates.
+                Separate from your portfolio.
+              </p>
+            </div>
+          </div>
+          <div className="relative z-10 flex items-center gap-3 shrink-0">
+            <div className="hidden md:flex items-center gap-1.5 text-xs text-gray-500">
+              <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" />5
+              templates
+            </div>
+            <button
+              onClick={() => router.push("/resume-builder")}
+              className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(37,99,235,0.3)]"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              Build Resume
+            </button>
+          </div>
+        </motion.div>
+
+        {/* ── Tab Switcher ── */}
+        <div className="flex items-center gap-4 mb-8 border-b border-gray-800 pb-px">
+          <button
+            onClick={() => setActiveTab("portfolios")}
+            className={`font-bold pb-4 px-2 border-b-2 transition-all ${activeTab === "portfolios" ? "border-blue-500 text-blue-400" : "border-transparent text-gray-500 hover:text-gray-300"}`}
+          >
+            Websites & Portfolios
+          </button>
+          <button
+            onClick={() => setActiveTab("resumes")}
+            className={`font-bold pb-4 px-2 border-b-2 transition-all ${activeTab === "resumes" ? "border-blue-500 text-blue-400" : "border-transparent text-gray-500 hover:text-gray-300"}`}
+          >
+            PDF Resumes
+            {resumes.length > 0 && (
+              <span className="ml-2 bg-blue-500/20 text-blue-400 text-[10px] px-2 py-0.5 rounded-full">
+                {resumes.length}
+              </span>
+            )}
+          </button>
+        </div>
+
         {/* Main Content Area */}
         <AnimatePresence mode="wait">
-          {portfolios.length === 0 ? (
+          {activeTab === "portfolios" ? (
+            portfolios.length === 0 ? (
+              <motion.div
+                key="empty-portfolios"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="relative overflow-hidden rounded-3xl bg-linear-to-b from-gray-900 to-black border border-gray-800 p-12 text-center"
+              >
+                <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+                  <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500 rounded-full blur-[120px]" />
+                  <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500 rounded-full blur-[120px]" />
+                </div>
+                <div className="relative z-10 flex flex-col items-center max-w-xl mx-auto">
+                  <div className="w-24 h-24 bg-gray-800 rounded-2xl flex items-center justify-center mb-8 rotate-3 hover:rotate-0 transition-transform duration-500">
+                    <Layout className="w-12 h-12 text-blue-500" />
+                  </div>
+                  <h2 className="text-3xl font-bold mb-4">
+                    Your Creative Journey Begins Here
+                  </h2>
+                  <p className="text-gray-400 text-lg mb-8 leading-relaxed">
+                    PortfolioForge helps you craft professional sites in
+                    minutes.
+                  </p>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    onClick={() => router.push("/templates")}
+                    className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-blue-500/20"
+                  >
+                    <Zap className="w-5 h-5 fill-current" /> Explore Templates
+                  </motion.button>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="grid-portfolios"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              >
+                {portfolios.map((portfolio, index) => (
+                  <PortfolioCard
+                    key={portfolio.id}
+                    index={index}
+                    portfolio={portfolio}
+                    onEdit={() =>
+                      router.push(`/builder-new?id=${portfolio.id}`)
+                    }
+                    onDelete={() => handleDelete(portfolio)}
+                    onTogglePublish={() => handleTogglePublish(portfolio)}
+                    onCopyLink={() => copyLink(portfolio.slug)}
+                    onViewStats={() => {
+                      setIntelligencePortfolio(portfolio);
+                      setShowIntelligenceModal(true);
+                    }}
+                    onPreview={() => {
+                      setPreviewPortfolio(portfolio);
+                      setShowPreviewModal(true);
+                    }}
+                    isDeleting={deletingId === portfolio.id}
+                  />
+                ))}
+              </motion.div>
+            )
+          ) : resumes.length === 0 ? (
             <motion.div
+              key="empty-resumes"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
               className="relative overflow-hidden rounded-3xl bg-linear-to-b from-gray-900 to-black border border-gray-800 p-12 text-center"
             >
-              <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500 rounded-full blur-[120px]" />
-              </div>
-
               <div className="relative z-10 flex flex-col items-center max-w-xl mx-auto">
-                <div className="w-24 h-24 bg-gray-800 rounded-2xl flex items-center justify-center mb-8 rotate-3 hover:rotate-0 transition-transform duration-500">
-                  <Layout className="w-12 h-12 text-blue-500" />
+                <div className="w-24 h-24 bg-gray-800 rounded-2xl flex items-center justify-center mb-8 -rotate-3 hover:rotate-0 transition-transform duration-500">
+                  <FileText className="w-12 h-12 text-blue-400" />
                 </div>
                 <h2 className="text-3xl font-bold mb-4">
-                  Your Creative Journey Begins Here
+                  Create Your Professional Resume
                 </h2>
                 <p className="text-gray-400 text-lg mb-8 leading-relaxed">
-                  PortfolioForge helps you craft professional sites in minutes.
-                  Choose a template and start your world-class presence today.
+                  Build a distinct, print-ready PDF resume perfectly formatted
+                  for applications.
                 </p>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
-                  onClick={() => router.push("/templates")}
+                  onClick={() => router.push("/resume-builder")}
                   className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-blue-500/20"
                 >
-                  <Zap className="w-5 h-5 fill-current" />
-                  Explore Templates
+                  <FileText className="w-5 h-5 fill-current" /> Build a Resume
                 </motion.button>
               </div>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {portfolios.map((portfolio, index) => (
-                <PortfolioCard
-                  key={portfolio.id}
+            <motion.div
+              key="grid-resumes"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            >
+              {resumes.map((resume, index) => (
+                <ResumeCard
+                  key={resume.id}
                   index={index}
-                  portfolio={portfolio}
-                  onEdit={() => router.push(`/builder-new?id=${portfolio.id}`)}
-                  onDelete={() => handleDelete(portfolio)}
-                  onTogglePublish={() => handleTogglePublish(portfolio)}
-                  onCopyLink={() => copyLink(portfolio.slug)}
-                  onViewStats={() => {
-                    setIntelligencePortfolio(portfolio);
-                    setShowIntelligenceModal(true);
+                  resume={resume}
+                  onEdit={() => router.push(`/resume-builder?id=${resume.id}`)}
+                  onDelete={() => {
+                    setResumeToDelete(resume);
+                    setShowDeleteModal(true);
                   }}
-                  onPreview={() => {
-                    setPreviewPortfolio(portfolio);
-                    setShowPreviewModal(true);
-                  }}
-                  isDeleting={deletingId === portfolio.id}
                 />
               ))}
-            </div>
+            </motion.div>
           )}
         </AnimatePresence>
       </div>
@@ -310,16 +483,19 @@ export default function DashboardPage() {
         onClose={() => {
           setShowDeleteModal(false);
           setPortfolioToDelete(null);
+          setResumeToDelete(null);
         }}
         onConfirm={confirmDelete}
-        title="Archiving Project"
+        title={`Archiving ${portfolioToDelete ? "Project" : "Resume"}`}
         message={`Are you sure you want to remove "${
-          portfolioToDelete?.data?.personal?.name || "this project"
+          portfolioToDelete?.data?.personal?.name ||
+          resumeToDelete?.title ||
+          "this item"
         }" from your studio? This action cannot be reversed.`}
-        confirmText="Archive Project"
+        confirmText="Archive"
         cancelText="Cancel"
         isDestructive={true}
-        isLoading={deletingId !== null}
+        isLoading={deletingId !== null || deletingResumeId !== null}
       />
 
       <LoadingOverlay
@@ -553,7 +729,7 @@ function PortfolioCard({
                   // Or just keep it as a button that explains "Preview to Download".
                   // Better: Let's make it trigger preview for now as it's safest for rendering.
                   onPreview();
-                }
+                },
               );
             }}
             className="flex items-center justify-center gap-2 py-3 bg-gray-800 hover:bg-gray-700 rounded-2xl text-xs font-bold transition-all border border-gray-700"
@@ -593,6 +769,121 @@ function PortfolioCard({
               <Copy className="w-3 h-3" />
             </button>
           )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function ResumeCard({
+  resume,
+  index,
+  onEdit,
+  onDelete,
+}: {
+  resume: Resume;
+  index: number;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
+      const { downloadProfessionalPDF } =
+        await import("@/lib/utils/pdf-service");
+      await downloadProfessionalPDF(
+        resume.template_id || "resume-classic",
+        resume.data,
+        resume.title,
+      );
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.1 }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      className="group relative bg-[#121212] border border-gray-800 rounded-[32px] overflow-hidden hover:border-blue-500/50 transition-all duration-500"
+    >
+      <div className="relative h-48 bg-gray-900 overflow-hidden">
+        <div
+          className={`absolute inset-0 bg-linear-to-br from-blue-600/10 to-transparent transition-opacity duration-500 ${isHovered ? "opacity-100" : "opacity-40"}`}
+        />
+        <div className="absolute inset-0 flex items-center justify-center p-8">
+          <div className="w-full h-full rounded-xl border-2 border-dashed border-gray-700 flex flex-col items-center justify-center gap-2 group-hover:border-blue-500/30 transition-colors">
+            <FileText className="w-8 h-8 text-gray-500 group-hover:text-blue-400 transition-colors" />
+            <p className="text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold">
+              {resume.template_id}
+            </p>
+          </div>
+        </div>
+        <div
+          className={`absolute inset-0 flex items-center justify-center gap-4 bg-black/60 backdrop-blur-sm transition-all duration-500 ${isHovered ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        >
+          <button
+            onClick={onEdit}
+            className="p-4 bg-white text-black rounded-full hover:scale-110 transition-transform shadow-2xl"
+            title="Edit Resume"
+          >
+            <Edit className="w-5 h-5" />
+          </button>
+          <button
+            onClick={handleDownload}
+            disabled={isDownloading}
+            className="p-4 bg-blue-600 text-white rounded-full hover:scale-110 transition-transform shadow-2xl disabled:opacity-50"
+            title="Download PDF"
+          >
+            {isDownloading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <Download className="w-5 h-5" />
+            )}
+          </button>
+        </div>
+      </div>
+      <div className="p-8">
+        <h3 className="text-xl font-bold truncate group-hover:text-blue-400 transition-colors mb-2">
+          {resume.title || "Untitled Resume"}
+        </h3>
+        <p className="text-xs text-gray-500 mb-6">
+          Updated on {new Date(resume.updated_at).toLocaleDateString()}
+        </p>
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={onEdit}
+            className="flex-1 flex items-center justify-center gap-2 py-3 bg-gray-800 hover:bg-gray-700 rounded-2xl text-xs font-bold transition-all border border-gray-700"
+          >
+            <Settings className="w-4 h-4" /> Edit
+          </button>
+          <button
+            onClick={handleDownload}
+            disabled={isDownloading}
+            className="flex-1 flex items-center justify-center gap-2 py-3 bg-gray-800 hover:bg-blue-600 hover:border-blue-500 rounded-2xl text-xs font-bold transition-all border border-gray-700"
+          >
+            {isDownloading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}{" "}
+            PDF
+          </button>
+        </div>
+        <div className="flex justify-end">
+          <button
+            onClick={onDelete}
+            className="text-gray-600 hover:text-red-500 transition-colors p-2"
+            title="Delete Resume"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </motion.div>

@@ -104,3 +104,48 @@ body {
   overflow: hidden;
   position: relative;
 }
+
+/* Fixed-canvas structural utilities (Phase 6) */
+.fixed-canvas-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+
+.fixed-canvas-nowrap {
+  white-space: nowrap;
+}
+
+.fixed-canvas-ellipsis {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fixed-canvas-contact-anchor {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media print {
+  .fixed-canvas-row {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .fixed-canvas-nowrap,
+  .fixed-canvas-ellipsis,
+  .fixed-canvas-contact-anchor {
+    white-space: nowrap !important;
+  }
+
+  .fixed-canvas-row,
+  .fixed-canvas-row > * {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

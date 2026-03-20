@@ -25,8 +25,8 @@ export const Hero = () => {
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-        <div className="text-center space-y-12">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="text-center space-y-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -41,14 +41,14 @@ export const Hero = () => {
             </div>
 
             {/* Title */}
-            <h1 className="text-6xl md:text-9xl font-black mb-10 tracking-tighter text-white leading-[0.9]">
+            <h1 className="text-6xl md:text-9xl font-black mb-7 tracking-tighter text-white leading-[0.9]">
               DESIGN FOR <br />
               <span className="bg-linear-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent italic">
                 DISTINCTION.
               </span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-gray-400 mb-12 max-w-3xl mx-auto font-medium leading-relaxed">
+            <p className="text-xl md:text-2xl text-gray-400 mb-8 max-w-3xl mx-auto font-medium leading-relaxed">
               Stop using generic builders. Experience the first cinematic
               portfolio engine designed for creators who demand high-fidelity
               results in minutes.

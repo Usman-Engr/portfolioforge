@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { stripe } from '@/lib/stripe';
+import { getTemplateById } from '@/lib/templates';
+import { getTemplateCheckoutPriceCents } from '@/lib/billing';
 
 export async function POST(req: Request) {
     try {
@@ -11,10 +13,24 @@ export async function POST(req: Request) {
             return new NextResponse('Unauthorized', { status: 401 });
         }
 
-        const { templateId, templateName, price } = await req.json();
+        const { templateId } = await req.json();
 
-        if (!templateId || !price) {
+        if (!templateId) {
             return new NextResponse('Missing required fields', { status: 400 });
+        }
+
+        const template = getTemplateById(templateId);
+        if (!template) {
+            return new NextResponse('Template not found', { status: 404 });
+        }
+
+        if (!template.isPremium) {
+            return new NextResponse('Template does not require checkout', { status: 400 });
+        }
+
+        const amount = getTemplateCheckoutPriceCents(templateId);
+        if (amount === null) {
+            return new NextResponse('Template does not require checkout', { status: 400 });
         }
 
         const checkoutSession = await stripe.checkout.sessions.create({
@@ -24,10 +40,10 @@ export async function POST(req: Request) {
                     price_data: {
                         currency: 'usd',
                         product_data: {
-                            name: `${templateName} Template`,
-                            description: `Lifetime access to the ${templateName} portfolio template`,
+                            name: `${template.name} Template`,
+                            description: `Lifetime access to the ${template.name} portfolio template`,
                         },
-                        unit_amount: Math.round(price * 100), // Convert to cents
+                        unit_amount: amount,
                     },
                     quantity: 1,
                 },

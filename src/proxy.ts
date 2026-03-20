@@ -14,13 +14,15 @@ export async function proxy(request: NextRequest) {
     );
 
     if (isProtectedRoute) {
-        // Use process.env.NEXTAUTH_SECRET or a fallback for development
-        // WARNING: In production, always ensure NEXTAUTH_SECRET is set in environment vars.
-        const secret = process.env.NEXTAUTH_SECRET || 'development_secret_reforge_2025';
+        const secret = process.env.NEXTAUTH_SECRET;
         
+        if (!secret && process.env.NODE_ENV === 'production') {
+            throw new Error("NEXTAUTH_SECRET is missing!");
+        }
+
         const token = await getToken({
             req: request,
-            secret: secret,
+            secret: secret!,
         });
 
         if (!token) {

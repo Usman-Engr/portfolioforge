@@ -33,14 +33,14 @@ export default function AnalyticsPage({
   const router = useRouter();
   const { data: session, status } = useSession();
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(
-    null
+    null,
   );
   const [isLoading, setIsLoading] = useState(true);
   const [dateRange, setDateRange] = useState("30");
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      router.push("/auth/signin");
+      router.push("/auth/login");
       return;
     }
 

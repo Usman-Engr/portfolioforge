@@ -20,22 +20,6 @@ export async function POST(request: Request) {
             );
         }
 
-        // BACKDOOR: Dummy Signup
-        if (email === "usman@gmail.com") {
-             // Mock success
-             return NextResponse.json(
-                {
-                    message: 'User created successfully',
-                    user: {
-                        id: 'dummy-user-id',
-                        name: name,
-                        email: email,
-                    }
-                },
-                { status: 201 }
-            );
-        }
-
         // Create the Auth User
         const { data, error: authError } = await supabase.auth.signUp({
             email,

@@ -1,4 +1,13 @@
 import { PortfolioData } from "@/lib/types/portfolio";
+import { ReactNode } from "react";
+import CanvasWrapper from "@/components/CanvasWrapper";
+
+/* ====================================================================
+   LEGACY PORTFOLIO TEMPLATES — Kept for future use, rendering commented out
+   To re-enable a template, uncomment its import and add a case to
+   resolveTemplateNode() and getTemplateComponent() below.
+   ====================================================================
+
 import MinimalProTemplate from "@/components/templates/MinimalProTemplate";
 import GradientProTemplate from "@/components/templates/GradientProTemplate";
 import ModernTechTemplate from "@/components/templates/ModernTechTemplate";
@@ -12,6 +21,11 @@ import OrganicSageTemplate from "@/components/templates/OrganicSageTemplate";
 import MonoFocusTemplate from "@/components/templates/MonoFocusTemplate";
 import DynamicFlowTemplate from "@/components/templates/DynamicFlowTemplate";
 import GridMasterTemplate from "@/components/templates/GridMasterTemplate";
+
+==================================================================== */
+
+// Active portfolio template (kept as default)
+import MinimalProTemplate from "@/components/templates/MinimalProTemplate";
 
 /**
  * Normalizes portfolio data to handle legacy and new structures
@@ -28,7 +42,7 @@ function normalizeData(data: any): PortfolioData {
     social: baseData.social || baseData.contact || {}, // Fallback social to contact for legacy support
     skills: Array.isArray(baseData.skills)
       ? baseData.skills.map((s: any) =>
-          typeof s === "string" ? { name: s, level: 5 } : s
+          typeof s === "string" ? { name: s, level: 5 } : s,
         )
       : [],
     projects: Array.isArray(baseData.projects) ? baseData.projects : [],
@@ -47,12 +61,16 @@ function normalizeData(data: any): PortfolioData {
   return normalized;
 }
 
-export function renderTemplate(templateId: string, data: any) {
-  const normalizedData = normalizeData(data);
-
+function resolveTemplateNode(
+  templateId: string,
+  normalizedData: PortfolioData,
+): ReactNode {
   switch (templateId) {
-    case "minimal-pro":
-      return <MinimalProTemplate data={normalizedData} />;
+    /* ================================================================
+       LEGACY PORTFOLIO TEMPLATE CASES — Kept for future re-activation
+       Uncomment the import above and the case here to enable.
+       ================================================================
+
     case "gradient-pro":
       return <GradientProTemplate data={normalizedData} />;
     case "modern-tech":
@@ -79,68 +97,53 @@ export function renderTemplate(templateId: string, data: any) {
       return <GridMasterTemplate data={normalizedData} />;
     case "studio-elite":
       return <ProfessionalCVTemplate data={normalizedData} />;
+
+    ================================================================ */
+
+    case "minimal-pro":
     default:
       return <MinimalProTemplate data={normalizedData} />;
   }
+}
+
+export function renderTemplate(templateId: string, data: any) {
+  const normalizedData = normalizeData(data);
+  const templateNode = resolveTemplateNode(templateId, normalizedData);
+
+  // Helper to wrap templates in CanvasWrapper
+  const wrapTemplate = (template: ReactNode) => (
+    <CanvasWrapper>{template}</CanvasWrapper>
+  );
+
+  return wrapTemplate(templateNode);
+}
+
+export function renderTemplateForExport(templateId: string, data: any) {
+  const normalizedData = normalizeData(data);
+  return resolveTemplateNode(templateId, normalizedData);
 }
 
 /**
  * Get template component by ID
  */
 export function getTemplateComponent(templateId: string) {
-  switch (templateId) {
-    case "minimal-pro":
-      return MinimalProTemplate;
-    case "gradient-pro":
-      return GradientProTemplate;
-    case "modern-tech":
-      return ModernTechTemplate;
-    case "creative-studio":
-      return CreativeStudioTemplate;
-    case "luxe-horizon":
-      return LuxeHorizonTemplate;
-    case "brutalist-pulse":
-      return BrutalistPulseTemplate;
-    case "aero-glass":
-      return AeroGlassTemplate;
-    case "neon-drive":
-      return NeonDriveTemplate;
-    case "professional-cv":
-      return ProfessionalCVTemplate;
-    case "organic-sage":
-      return OrganicSageTemplate;
-    case "mono-focus":
-      return MonoFocusTemplate;
-    case "dynamic-flow":
-      return DynamicFlowTemplate;
-    case "grid-master":
-      return GridMasterTemplate;
-    case "studio-elite":
-      return ProfessionalCVTemplate;
-    default:
-      return MinimalProTemplate;
-  }
+  // All legacy portfolio templates are commented out.
+  // See block comment above for re-activation instructions.
+  return MinimalProTemplate;
 }
 
 /**
  * Validate template ID
+ * NOTE: Only minimal-pro is active for portfolio. Resume templates are in resume-template-renderer.tsx
  */
 export function isValidTemplateId(templateId: string): boolean {
   const validIds = [
     "minimal-pro",
-    "gradient-pro",
-    "modern-tech",
-    "creative-studio",
-    "professional-cv",
-    "luxe-horizon",
-    "brutalist-pulse",
-    "aero-glass",
-    "mono-focus",
-    "neon-drive",
-    "organic-sage",
-    "dynamic-flow",
-    "grid-master",
-    "studio-elite",
+    /* Legacy IDs kept for data compatibility — templates are commented out:
+    "gradient-pro", "modern-tech", "creative-studio", "professional-cv",
+    "luxe-horizon", "brutalist-pulse", "aero-glass", "mono-focus",
+    "neon-drive", "organic-sage", "dynamic-flow", "grid-master", "studio-elite",
+    */
   ];
   return validIds.includes(templateId);
 }

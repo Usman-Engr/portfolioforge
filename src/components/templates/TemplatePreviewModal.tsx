@@ -12,7 +12,7 @@ import { renderTemplate } from "@/lib/utils/template-renderer";
 import { demoPortfolioData, PortfolioData } from "@/lib/types/portfolio";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef } from "react";
-import { downloadPortfolioAsPDF } from "@/lib/utils/pdf-generator";
+import { downloadProfessionalPDF } from "@/lib/utils/pdf-service";
 
 interface TemplatePreviewModalProps {
   template: TemplateInfo;
@@ -37,11 +37,12 @@ export default function TemplatePreviewModal({
 
   const handleDownloadPDF = async () => {
     setIsDownloading(true);
-    await new Promise((r) => setTimeout(r, 500));
     try {
-      await downloadPortfolioAsPDF(
-        "portfolio-preview-content",
-        `${customData?.personal.name || "portfolio"}-${template.id}`
+      const dataToUse = customData || demoPortfolioData;
+      await downloadProfessionalPDF(
+        template.id,
+        dataToUse,
+        `${dataToUse.personal.name || "portfolio"}-${template.id}`
       );
     } finally {
       setIsDownloading(false);
