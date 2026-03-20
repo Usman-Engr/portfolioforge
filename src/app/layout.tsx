@@ -14,6 +14,8 @@ export const metadata: Metadata = {
     "Create a stunning professional portfolio with just a few clicks. No design skills needed.",
 };
 
+import { Analytics } from "@vercel/analytics/react";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,6 +29,7 @@ export default function RootLayout({
           <Navbar />
           {children}
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
