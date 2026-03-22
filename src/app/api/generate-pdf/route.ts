@@ -1,87 +1,182 @@
 import { NextRequest, NextResponse } from "next/server";
-import puppeteer from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
 import { getTemplateById } from "@/lib/templates";
 import { getResumeTemplateById } from "@/lib/resume-templates";
 
-// Basic config
-const isProduction = process.env.NODE_ENV === 'production';
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
-// VIEWPORT and other constants...
 const VIEWPORT = {
-  width: 1200,
-  height: 1600,
-  deviceScaleFactor: 2,
+  width: 794,   // Exact pixel-equivalent of 210mm at 96dpi
+  height: 1123, // Exact pixel-equivalent of 297mm at 96dpi
+  deviceScaleFactor: 2, // HiDPI for crisp text
 } as const;
 
 const NAVIGATION_TIMEOUT_MS = 60_000;
 const RENDER_READY_TIMEOUT_MS = 30_000;
+const NETWORK_IDLE_TIMEOUT_MS = 15_000;
 
 type GeneratePdfBody = {
   templateId: string;
   data: unknown;
 };
 
+// ---------------------------------------------------------------------------
+// Browser singleton — reuse across requests (critical for performance)
+// ---------------------------------------------------------------------------
+let browserInstance: import("puppeteer-core").Browser | null = null;
+
+async function getBrowser(): Promise<import("puppeteer-core").Browser> {
+  // If we have a live browser, return it
+  if (browserInstance) {
+    try {
+      // Health-check: if this throws the browser crashed
+      const pages = await browserInstance.pages();
+      if (pages !== undefined) {
+        return browserInstance;
+      }
+    } catch {
+      console.warn("[PDF] Browser instance unhealthy, relaunching...");
+      browserInstance = null;
+    }
+  }
+
+  // Lazily import so Next.js doesn't attempt to bundle Chromium at build time
+  const puppeteer = await import("puppeteer-core");
+
+  if (IS_PRODUCTION) {
+    // @sparticuz/chromium types are incomplete — cast to access runtime properties
+    const chromium = await import("@sparticuz/chromium") as any;
+    const chromiumDefault = chromium.default ?? chromium;
+    browserInstance = await puppeteer.default.launch({
+      args: chromiumDefault.args ?? [],
+      defaultViewport: chromiumDefault.defaultViewport ?? VIEWPORT,
+      executablePath: await chromiumDefault.executablePath(),
+      headless: chromiumDefault.headless ?? true,
+    });
+  } else {
+    // Local development — use the system Chrome installation
+    // Adjust this path if Chrome is installed elsewhere on your machine
+    const possibleChromePaths = [
+      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+      "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+      "/usr/bin/google-chrome",
+      "/usr/bin/chromium-browser",
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    ];
+
+    // Use environment variable override if set
+    const chromePath =
+      process.env.CHROME_EXECUTABLE_PATH ||
+      possibleChromePaths.find((p) => {
+        try {
+          require("fs").accessSync(p);
+          return true;
+        } catch {
+          return false;
+        }
+      }) ||
+      possibleChromePaths[0];
+
+    browserInstance = await puppeteer.default.launch({
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--font-render-hinting=none", // Ensures consistent font rendering
+      ],
+      defaultViewport: VIEWPORT,
+      executablePath: chromePath,
+      headless: true,
+    });
+  }
+
+  // Clean up on process exit so we don't leave zombie Chromium processes
+  browserInstance.on("disconnected", () => {
+    browserInstance = null;
+  });
+
+  console.log(`[PDF] Browser launched (${IS_PRODUCTION ? "prod" : "dev"})`);
+  return browserInstance;
+}
+
+// ---------------------------------------------------------------------------
+// POST /api/generate-pdf
+// ---------------------------------------------------------------------------
 export async function POST(req: NextRequest) {
-  let browser: any = null;
+  let page: import("puppeteer-core").Page | null = null;
 
   try {
     const body = (await req.json()) as GeneratePdfBody;
-    const templateId = body?.templateId;
-    const data = body?.data;
+    const { templateId, data } = body;
 
-    if (!templateId || !data) {
+    // ── Input validation ──────────────────────────────────────────────────
+    if (!templateId || typeof templateId !== "string") {
       return NextResponse.json(
-        { error: "Missing templateId or portfolio data" },
+        { error: "Missing or invalid templateId" },
         { status: 400 }
       );
     }
 
-    if (
-      typeof templateId !== "string" ||
-      (!getTemplateById(templateId) && !getResumeTemplateById(templateId))
-    ) {
+    if (!data) {
+      return NextResponse.json(
+        { error: "Missing resume/portfolio data" },
+        { status: 400 }
+      );
+    }
+
+    const isResumeTemplate = templateId.startsWith("resume-");
+    const isValidTemplate = isResumeTemplate
+      ? Boolean(getResumeTemplateById(templateId))
+      : Boolean(getTemplateById(templateId));
+
+    if (!isValidTemplate) {
       return NextResponse.json({ error: "Invalid templateId" }, { status: 400 });
     }
 
-    // Determine the base URL for the render route
+    // ── Build render URL ──────────────────────────────────────────────────
     const protocol = req.headers.get("x-forwarded-proto") || "http";
     const host = req.headers.get("host") || "localhost:3002";
     const baseUrl = `${protocol}://${host}`;
 
-    // Base64 encode data to pass in URL
+    // Base64-encode JSON data to safely pass through URL query params
+    // (avoids special character encoding issues with complex data)
     const encodedData = Buffer.from(JSON.stringify(data)).toString("base64");
-    const renderUrl = `${baseUrl}/export/render/${templateId}?data=${encodeURIComponent(encodedData)}&pdf=1`;
 
-    console.log(`[PDF] Rendering template: ${templateId} in ${isProduction ? 'PROD' : 'DEV'}`);
+    // Resume templates use the dedicated high-fidelity route;
+    // portfolio templates continue to use the existing generic render route.
+    const renderPath = isResumeTemplate
+      ? `/export/resume/${templateId}`
+      : `/export/render/${templateId}`;
 
-    // Launch puppeteer with sparticuz/chromium config for Vercel
-    browser = await puppeteer.launch({
-      args: isProduction ? chromium.args : ["--no-sandbox", "--disable-setuid-sandbox"],
-      defaultViewport: isProduction ? (chromium as any).defaultViewport : VIEWPORT,
-      executablePath: isProduction ? await chromium.executablePath() : "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-      headless: isProduction ? (chromium as any).headless : true,
-    });
+    const renderUrl = `${baseUrl}${renderPath}?data=${encodeURIComponent(encodedData)}&pdf=1`;
 
-    const page = await browser.newPage();
+    console.log(`[PDF] Rendering: ${templateId} → ${renderUrl}`);
 
-    // Lock viewport to fixed canvas contract.
-    await page.setViewport(VIEWPORT);
-    // Keep screen media for PDF parity with the live template layout.
+    // ── Acquire browser page ──────────────────────────────────────────────
+    const browser = await getBrowser();
+    page = await browser.newPage();
+
+    // Use screen media so Tailwind's responsive classes apply correctly
+    // (the template CSS already handles @media print adjustments)
     await page.emulateMediaType("screen");
+    await page.setViewport(VIEWPORT);
 
-    // Wait for full network idle and hydration.
+    // ── Navigate and wait for full render ─────────────────────────────────
     await page.goto(renderUrl, {
       waitUntil: ["networkidle0", "domcontentloaded", "load"],
       timeout: NAVIGATION_TIMEOUT_MS,
     });
 
-    // Ensure the export canvas root exists before checking readiness flags.
+    // Wait for the resume root element to appear in the DOM
     await page.waitForSelector(".export-canvas-root", {
       timeout: RENDER_READY_TIMEOUT_MS,
     });
 
-    // Deterministic readiness gate: fonts and render signal must both be ready.
+    // Wait for deterministic readiness signal:
+    // window.__PDF_READY__ is set by the render page AFTER fonts.ready + 2×rAF
     await page.waitForFunction(
       () => {
         const pdfReady = (window as Window & { __PDF_READY__?: boolean })
@@ -95,29 +190,30 @@ export async function POST(req: NextRequest) {
       { timeout: RENDER_READY_TIMEOUT_MS }
     );
 
-    // Keep one extra paint cycle to avoid late style application races.
+    // One extra rAF to catch any late-applied styles (e.g. CSS custom properties)
     await page.evaluate(
       () =>
-        new Promise<void>((resolve) => {
-          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-        })
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+        )
     );
 
-    await page.waitForNetworkIdle({
-      idleTime: 500,
-      timeout: RENDER_READY_TIMEOUT_MS,
-    });
+    // Brief network idle check to ensure remote fonts / assets are done
+    try {
+      await page.waitForNetworkIdle({
+        idleTime: 300,
+        timeout: NETWORK_IDLE_TIMEOUT_MS,
+      });
+    } catch {
+      // Non-fatal: network may have already settled; proceed to capture
+      console.warn("[PDF] Network idle timeout reached — proceeding anyway");
+    }
 
-    // Allow any motion effects to settle before capture.
-    await page.evaluate(
-      () => new Promise<void>((resolve) => setTimeout(resolve, 2200))
-    );
-
-    // Generate PDF following the export route print contract.
+    // ── Generate A4 PDF ───────────────────────────────────────────────────
     const pdfBuffer = await page.pdf({
       format: "A4",
-      printBackground: true,
-      preferCSSPageSize: true,
+      printBackground: true,  // Ensures colored backgrounds are included
+      preferCSSPageSize: true, // Respects @page { size: A4; margin: 0 }
       margin: {
         top: "0px",
         right: "0px",
@@ -127,26 +223,49 @@ export async function POST(req: NextRequest) {
     });
 
     await page.close();
+    page = null;
 
-    // Return the PDF file directly.
-    const responseBuffer = Buffer.from(pdfBuffer);
+    // ── Derive filename ───────────────────────────────────────────────────
+    let fileName = `resume-${templateId}`;
+    try {
+      const resumeData = data as { personal?: { fullName?: string } };
+      if (resumeData?.personal?.fullName) {
+        const safeName = resumeData.personal.fullName
+          .replace(/[^a-zA-Z0-9\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .toLowerCase();
+        fileName = `${safeName}-resume`;
+      }
+    } catch {
+      // Fallback filename is fine
+    }
 
-    return new NextResponse(responseBuffer, {
+    return new NextResponse(Buffer.from(pdfBuffer), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="portfolio-${templateId}.pdf"`,
+        "Content-Disposition": `attachment; filename="${fileName}.pdf"`,
         "Cache-Control": "no-store",
       },
     });
-  } catch (error: any) {
-    console.error("[PDF] Generation Error");
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("[PDF] Generation failed:", message);
+
     return NextResponse.json(
-      { error: "Failed to generate PDF" },
+      {
+        error: "Failed to generate PDF",
+        detail: IS_PRODUCTION ? undefined : message,
+      },
       { status: 500 }
     );
   } finally {
-    if (browser) {
-      await browser.close();
+    // Always close the page (not the browser) so the instance can be reused
+    if (page) {
+      try {
+        await page.close();
+      } catch {
+        // Ignore close errors
+      }
     }
   }
 }

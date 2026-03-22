@@ -41,7 +41,7 @@ import ResumeEducationForm from "@/components/resume-builder/ResumeEducationForm
 import ResumeSkillsForm from "@/components/resume-builder/ResumeSkillsForm";
 import CertificationsForm from "@/components/resume-builder/CertificationsForm";
 import LanguagesForm from "@/components/resume-builder/LanguagesForm";
-import { downloadProfessionalPDF } from "@/lib/utils/pdf-service";
+import { downloadResumePDF } from "@/lib/utils/pdf-service";
 
 type Section =
   | "personal"
@@ -395,9 +395,9 @@ function ResumeBuilderContent() {
   const handleDownloadPDF = async () => {
     setIsDownloading(true);
     try {
-      await downloadProfessionalPDF(
+      await downloadResumePDF(
         selectedTemplateId,
-        resumeData as any,
+        resumeData,
         `${resumeData.personal.fullName || "resume"}-resume`,
       );
     } finally {
