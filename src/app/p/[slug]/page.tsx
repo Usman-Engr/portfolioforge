@@ -4,8 +4,8 @@ import { PortfolioData } from "@/lib/types/portfolio";
 import { serializePortfolio } from "@/lib/utils/serialization";
 import ShareButton from "@/components/portfolio/ShareButton";
 
-// Template components (will be created in Phase 3)
-import MinimalProTemplate from "@/components/templates/MinimalProTemplate";
+// Template dynamic resolver
+import { getTemplateComponent } from "@/lib/utils/template-renderer";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -104,9 +104,9 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
   // Extract ID as separate variable to avoid serializing entire portfolio object
   const portfolioId = portfolio.id;
 
-  // Render template based on template_id
-  // For now, we'll use MinimalProTemplate as default
-  const TemplateComponent = MinimalProTemplate;
+  // Render template based on database template_id
+  const templateId = portfolio.template_id || "minimal-pro";
+  const TemplateComponent = getTemplateComponent(templateId);
 
   return (
     <div className="min-h-screen">

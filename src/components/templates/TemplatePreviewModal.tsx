@@ -13,6 +13,7 @@ import { demoPortfolioData, PortfolioData } from "@/lib/types/portfolio";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef } from "react";
 import { downloadProfessionalPDF } from "@/lib/utils/pdf-service";
+import IFramePreview from "@/components/templates/IFramePreview";
 
 interface TemplatePreviewModalProps {
   template: TemplateInfo;
@@ -170,7 +171,9 @@ export default function TemplatePreviewModal({
                   : "w-full"
               }`}
             >
-              {renderTemplate(template.id, dataToRender)}
+              <IFramePreview className="w-full h-full border-0">
+                {renderTemplate(template.id, dataToRender)}
+              </IFramePreview>
             </div>
           </div>
 

@@ -43,6 +43,7 @@ import TemplateSelector from "@/components/templates/TemplateSelector";
 import TemplatePreviewModal from "@/components/templates/TemplatePreviewModal";
 import { renderTemplate } from "@/lib/utils/template-renderer";
 import { useAutoSave } from "@/hooks/useAutoSave";
+import IFramePreview from "@/components/templates/IFramePreview";
 
 type BuilderSection =
   | "personal"
@@ -196,7 +197,7 @@ function BuilderContent() {
       const published = await response.json();
       setPortfolioId(published.id);
       setCurrentSlug(slug);
-      router.push(`/p/${slug}`);
+      router.push(`/dashboard`);
     } catch (error: any) {
       throw new Error(error.message || "Failed to publish portfolio");
     }
@@ -441,8 +442,10 @@ function BuilderContent() {
                                 }
                             `}
             >
-              <div className="w-full h-full overflow-y-auto">
-                {renderTemplate(selectedTemplateId, portfolioData)}
+              <div className="w-full h-full overflow-hidden rounded-2xl">
+                <IFramePreview>
+                  {renderTemplate(selectedTemplateId, portfolioData)}
+                </IFramePreview>
               </div>
             </motion.div>
           </div>
@@ -462,6 +465,7 @@ function BuilderContent() {
       {showTemplatePreview && previewTemplate && (
         <TemplatePreviewModal
           template={previewTemplate}
+          customData={portfolioData}
           onClose={() => {
             setShowTemplatePreview(false);
             setPreviewTemplate(null);

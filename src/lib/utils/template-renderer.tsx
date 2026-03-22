@@ -2,12 +2,6 @@ import { PortfolioData } from "@/lib/types/portfolio";
 import { ReactNode } from "react";
 import CanvasWrapper from "@/components/CanvasWrapper";
 
-/* ====================================================================
-   LEGACY PORTFOLIO TEMPLATES — Kept for future use, rendering commented out
-   To re-enable a template, uncomment its import and add a case to
-   resolveTemplateNode() and getTemplateComponent() below.
-   ====================================================================
-
 import MinimalProTemplate from "@/components/templates/MinimalProTemplate";
 import GradientProTemplate from "@/components/templates/GradientProTemplate";
 import ModernTechTemplate from "@/components/templates/ModernTechTemplate";
@@ -21,11 +15,6 @@ import OrganicSageTemplate from "@/components/templates/OrganicSageTemplate";
 import MonoFocusTemplate from "@/components/templates/MonoFocusTemplate";
 import DynamicFlowTemplate from "@/components/templates/DynamicFlowTemplate";
 import GridMasterTemplate from "@/components/templates/GridMasterTemplate";
-
-==================================================================== */
-
-// Active portfolio template (kept as default)
-import MinimalProTemplate from "@/components/templates/MinimalProTemplate";
 
 /**
  * Normalizes portfolio data to handle legacy and new structures
@@ -66,11 +55,6 @@ function resolveTemplateNode(
   normalizedData: PortfolioData,
 ): ReactNode {
   switch (templateId) {
-    /* ================================================================
-       LEGACY PORTFOLIO TEMPLATE CASES — Kept for future re-activation
-       Uncomment the import above and the case here to enable.
-       ================================================================
-
     case "gradient-pro":
       return <GradientProTemplate data={normalizedData} />;
     case "modern-tech":
@@ -97,9 +81,6 @@ function resolveTemplateNode(
       return <GridMasterTemplate data={normalizedData} />;
     case "studio-elite":
       return <ProfessionalCVTemplate data={normalizedData} />;
-
-    ================================================================ */
-
     case "minimal-pro":
     default:
       return <MinimalProTemplate data={normalizedData} />;
@@ -124,26 +105,47 @@ export function renderTemplateForExport(templateId: string, data: any) {
 }
 
 /**
- * Get template component by ID
+ * Get template component by ID (used for dynamic imports or direct references if needed)
  */
 export function getTemplateComponent(templateId: string) {
-  // All legacy portfolio templates are commented out.
-  // See block comment above for re-activation instructions.
-  return MinimalProTemplate;
+  switch (templateId) {
+    case "gradient-pro": return GradientProTemplate;
+    case "modern-tech": return ModernTechTemplate;
+    case "creative-studio": return CreativeStudioTemplate;
+    case "luxe-horizon": return LuxeHorizonTemplate;
+    case "brutalist-pulse": return BrutalistPulseTemplate;
+    case "aero-glass": return AeroGlassTemplate;
+    case "neon-drive": return NeonDriveTemplate;
+    case "professional-cv": return ProfessionalCVTemplate;
+    case "organic-sage": return OrganicSageTemplate;
+    case "mono-focus": return MonoFocusTemplate;
+    case "dynamic-flow": return DynamicFlowTemplate;
+    case "grid-master": return GridMasterTemplate;
+    case "studio-elite": return ProfessionalCVTemplate;
+    case "minimal-pro":
+    default: return MinimalProTemplate;
+  }
 }
 
 /**
  * Validate template ID
- * NOTE: Only minimal-pro is active for portfolio. Resume templates are in resume-template-renderer.tsx
  */
 export function isValidTemplateId(templateId: string): boolean {
   const validIds = [
     "minimal-pro",
-    /* Legacy IDs kept for data compatibility — templates are commented out:
-    "gradient-pro", "modern-tech", "creative-studio", "professional-cv",
-    "luxe-horizon", "brutalist-pulse", "aero-glass", "mono-focus",
-    "neon-drive", "organic-sage", "dynamic-flow", "grid-master", "studio-elite",
-    */
+    "gradient-pro", 
+    "modern-tech", 
+    "creative-studio", 
+    "professional-cv",
+    "luxe-horizon", 
+    "brutalist-pulse", 
+    "aero-glass", 
+    "mono-focus",
+    "neon-drive", 
+    "organic-sage", 
+    "dynamic-flow", 
+    "grid-master", 
+    "studio-elite",
   ];
   return validIds.includes(templateId);
 }
