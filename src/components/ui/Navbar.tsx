@@ -31,7 +31,8 @@ export const Navbar = () => {
   if (
     pathname?.startsWith("/export") ||
     pathname?.startsWith("/resume-builder") ||
-    pathname?.startsWith("/builder-new")
+    pathname?.startsWith("/builder-new") ||
+    pathname?.startsWith("/p")
   ) {
     return null;
   }

@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
 
     // ── Build render URL ──────────────────────────────────────────────────
     const protocol = req.headers.get("x-forwarded-proto") || "http";
-    const host = req.headers.get("host") || "localhost:3002";
+    const host = req.headers.get("host") || "localhost:3009";
     const baseUrl = `${protocol}://${host}`;
 
     // Base64-encode JSON data to safely pass through URL query params
