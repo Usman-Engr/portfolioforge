@@ -14,13 +14,13 @@ const templates = [
         id: 'modern-card',
         name: 'Modern Card',
         description: 'Card-based layout with subtle animations',
-        isPremium: true,
+        isPremium: false,
     },
     {
         id: 'creative-grid',
         name: 'Creative Grid',
         description: 'Bold design with masonry-style project showcase',
-        isPremium: true,
+        isPremium: false,
     },
 ];
 
@@ -46,12 +46,6 @@ export const Templates = () => {
                             transition={{ duration: 0.5, delay: index * 0.1 }}
                             className="group relative bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
                         >
-                            {template.isPremium && (
-                                <div className="absolute top-4 right-4 z-10 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                                    Premium
-                                </div>
-                            )}
-
                             <div className="aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 relative overflow-hidden">
                                 {/* Placeholder for template preview */}
                                 <div className="absolute inset-0 flex items-center justify-center text-gray-400">

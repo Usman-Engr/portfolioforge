@@ -151,9 +151,7 @@ export default function TemplatePreviewModal({
                   className="group flex items-center gap-2 px-6 py-2 bg-white text-black rounded-full font-black text-[10px] uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] h-10 shrink-0"
                 >
                   <Zap className="w-3 h-3 fill-current" />
-                  <span className="hidden sm:inline">
-                    {template.isPremium ? "Upgrade" : "Design"}
-                  </span>
+                  <span className="hidden sm:inline">Design</span>
                 </button>
               )}
             </div>

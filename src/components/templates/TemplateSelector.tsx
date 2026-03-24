@@ -4,7 +4,6 @@ import { templates, TemplateInfo } from "@/lib/templates";
 import {
   Check,
   Sparkles,
-  Lock,
   Terminal,
   Palette,
   Briefcase,
@@ -17,7 +16,6 @@ interface TemplateSelectorProps {
   selectedTemplateId?: string;
   onSelect: (templateId: string) => void;
   onPreview: (template: TemplateInfo) => void;
-  userHasPremium?: boolean;
 }
 
 /**
@@ -28,7 +26,6 @@ export default function TemplateSelector({
   selectedTemplateId,
   onSelect,
   onPreview,
-  userHasPremium = false,
 }: TemplateSelectorProps) {
   const [activeTab, setActiveTab] = useState<
     "all" | "developer" | "designer" | "corporate"
@@ -87,7 +84,6 @@ export default function TemplateSelector({
               isSelected={selectedTemplateId === template.id}
               onSelect={() => onSelect(template.id)}
               onPreview={() => onPreview(template)}
-              isLocked={template.isPremium && !userHasPremium}
             />
           ))}
         </AnimatePresence>
@@ -110,13 +106,11 @@ function TemplateCard({
   isSelected,
   onSelect,
   onPreview,
-  isLocked,
 }: {
   template: TemplateInfo;
   isSelected: boolean;
   onSelect: () => void;
   onPreview: () => void;
-  isLocked: boolean;
 }) {
   return (
     <motion.div
@@ -130,7 +124,7 @@ function TemplateCard({
           ? "border-blue-600 shadow-2xl shadow-blue-500/20"
           : "border-white/5 hover:border-white/10"
       }`}
-      onClick={isLocked ? undefined : onSelect}
+      onClick={onSelect}
     >
       {/* Thumbnail */}
       <div className="relative h-48 bg-zinc-900 overflow-hidden">
@@ -192,21 +186,6 @@ function TemplateCard({
           ))}
         </div>
       </div>
-
-      {/* Locked Overlay */}
-      {isLocked && (
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
-          <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center mb-4">
-            <Lock className="w-6 h-6 text-white" />
-          </div>
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-white">
-            Upgrade to Studio Pro
-          </p>
-          <p className="text-[10px] text-gray-400 mt-2 font-bold">
-            This premium base requires a subscription.
-          </p>
-        </div>
-      )}
     </motion.div>
   );
 }

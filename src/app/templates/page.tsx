@@ -7,7 +7,6 @@ import { templates, TemplateInfo } from "@/lib/templates";
 import {
   Eye,
   Sparkles,
-  Lock,
   Check,
   Loader2,
   Zap,
@@ -17,7 +16,6 @@ import {
 } from "lucide-react";
 import TemplatePreviewModal from "@/components/templates/TemplatePreviewModal";
 import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "sonner";
 
 export default function TemplatesPage() {
   const router = useRouter();
@@ -26,7 +24,6 @@ export default function TemplatesPage() {
     null
   );
   const [showPreview, setShowPreview] = useState(false);
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -35,42 +32,6 @@ export default function TemplatesPage() {
   }, [status, router]);
 
   const handleUseTemplate = async (template: TemplateInfo) => {
-    if (template.isPremium) {
-      const userSubscription = (session?.user as any)?.subscriptionStatus;
-      if (userSubscription === "premium") {
-        router.push(`/builder-new?template=${template.id}`);
-        return;
-      }
-
-      setIsCheckingOut(true);
-      try {
-        const response = await fetch("/api/create-checkout-session", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            templateId: template.id,
-            templateName: template.name,
-            price: 29.99,
-          }),
-        });
-
-        const data = await response.json();
-        if (data.url) {
-          window.location.href = data.url;
-        } else {
-          toast.error("Checkout Unavailable", {
-            description: "The payment gateway is currently offline.",
-          });
-          setIsCheckingOut(false);
-        }
-      } catch (error) {
-        console.error("Checkout error:", error);
-        toast.error("An error occurred during transaction setup.");
-        setIsCheckingOut(false);
-      }
-      return;
-    }
-
     router.push(`/builder-new?template=${template.id}`);
   };
 
@@ -79,13 +40,13 @@ export default function TemplatesPage() {
     setShowPreview(true);
   };
 
-  if (status === "loading" || isCheckingOut) {
+  if (status === "loading") {
     return (
       <div className="min-h-screen bg-[#050505] flex items-center justify-center">
         <div className="flex flex-col items-center gap-6">
           <div className="w-16 h-16 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin" />
           <p className="text-gray-400 font-bold tracking-widest uppercase animate-pulse">
-            {isCheckingOut ? "Securing Transaction..." : "Loading Gallery..."}
+            Loading Gallery...
           </p>
         </div>
       </div>
@@ -151,7 +112,6 @@ export default function TemplatesPage() {
                     template={template}
                     onPreview={() => handlePreview(template)}
                     onUse={() => handleUseTemplate(template)}
-                    isPremium={template.isPremium}
                   />
                 ))}
             </div>
@@ -180,7 +140,6 @@ export default function TemplatesPage() {
                     template={template}
                     onPreview={() => handlePreview(template)}
                     onUse={() => handleUseTemplate(template)}
-                    isPremium={template.isPremium}
                   />
                 ))}
             </div>
@@ -214,7 +173,6 @@ export default function TemplatesPage() {
                     template={template}
                     onPreview={() => handlePreview(template)}
                     onUse={() => handleUseTemplate(template)}
-                    isPremium={template.isPremium}
                   />
                 ))}
             </div>
@@ -241,13 +199,11 @@ function TemplateCard({
   index,
   onPreview,
   onUse,
-  isPremium = false,
 }: {
   template: TemplateInfo;
   index: number;
   onPreview: () => void;
   onUse: () => void;
-  isPremium?: boolean;
 }) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -297,18 +253,6 @@ function TemplateCard({
           )}
         </div>
 
-        {/* Badge Overlay */}
-        {isPremium && (
-          <div className="absolute top-8 left-8">
-            <div className="px-4 py-1.5 bg-black/50 backdrop-blur-md border border-white/10 rounded-full flex items-center gap-2">
-              <Lock className="w-3.5 h-3.5 text-purple-400" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-white">
-                Advanced Tier
-              </span>
-            </div>
-          </div>
-        )}
-
         {/* Interaction Overlay */}
         <div
           className={`absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center gap-4 transition-opacity duration-500 ${
@@ -325,7 +269,7 @@ function TemplateCard({
             onClick={onUse}
             className="px-6 py-3 bg-purple-600 text-white font-black text-xs uppercase tracking-widest rounded-full hover:scale-110 transition-transform"
           >
-            {isPremium ? "Upgrade" : "Select"}
+            Select
           </button>
         </div>
       </div>
@@ -355,7 +299,7 @@ function TemplateCard({
 
         <div className="mt-10 pt-8 border-t border-white/5 flex items-center justify-between">
           <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-            {isPremium ? "Signature Range 01" : "Essential Range 01"}
+            Template Collection
           </div>
           <button
             onClick={onUse}
