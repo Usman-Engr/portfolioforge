@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { supabase } from "@/lib/db/supabase";
 import { PortfolioData } from "@/lib/types/portfolio";
 import { serializePortfolio } from "@/lib/utils/serialization";
-import ShareButton from "@/components/portfolio/ShareButton";
 
 // Template dynamic resolver
 import { getTemplateComponent } from "@/lib/utils/template-renderer";
@@ -120,19 +119,19 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
                             const portfolioId = '${portfolioId}';
                             const sessionKey = 'portfolio_session_id';
                             let sessionId = sessionStorage.getItem(sessionKey);
-                            
+
                             if (!sessionId) {
                                 sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                                 sessionStorage.setItem(sessionKey, sessionId);
                             }
-                            
+
                             const getDeviceType = () => {
                                 const width = window.innerWidth;
                                 if (width < 768) return 'mobile';
                                 if (width < 1024) return 'tablet';
                                 return 'desktop';
                             };
-                            
+
                             const getBrowser = () => {
                                 const ua = navigator.userAgent;
                                 if (ua.includes('Firefox')) return 'Firefox';
@@ -141,10 +140,10 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
                                 if (ua.includes('Edge')) return 'Edge';
                                 return 'Unknown';
                             };
-                            
+
                             let viewId = null;
                             const startTime = Date.now();
-                            
+
                             // Track page view
                             fetch('/api/analytics/track', {
                                 method: 'POST',
@@ -162,7 +161,7 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
                                 viewId = data.data?.id;
                             })
                             .catch(err => console.error('Tracking error:', err));
-                            
+
                             // Update time spent every 10 seconds
                             setInterval(() => {
                                 if (viewId) {
@@ -174,12 +173,12 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
                                     });
                                 }
                             }, 10000);
-                            
+
                             // Update on page unload
                             window.addEventListener('beforeunload', () => {
                                 if (viewId) {
                                     const timeSpent = Math.floor((Date.now() - startTime) / 1000);
-                                    navigator.sendBeacon('/api/analytics/track', 
+                                    navigator.sendBeacon('/api/analytics/track',
                                         JSON.stringify({ viewId, timeSpent })
                                     );
                                 }
@@ -188,9 +187,6 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
                     `,
         }}
       />
-
-      {/* Share button */}
-      <ShareButton />
     </div>
   );
 }

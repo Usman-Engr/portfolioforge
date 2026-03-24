@@ -23,7 +23,7 @@ export default function IFramePreview({ children, className = "w-full h-full bor
     doc.body.style.margin = "0";
     doc.body.style.padding = "0";
     doc.body.style.backgroundColor = "transparent";
-    
+
     // Setup initial fonts/base styles to match
     doc.documentElement.className = document.documentElement.className;
     doc.body.className = document.body.className;
@@ -46,9 +46,26 @@ export default function IFramePreview({ children, className = "w-full h-full bor
     });
     observer.observe(parentHead, { childList: true });
 
+    // Intercept all link clicks to open in new tab instead of navigating within iframe
+    const handleLinkClick = (e: Event) => {
+      const target = e.target as HTMLElement;
+      const anchor = target.closest('a');
+      if (anchor && anchor.href) {
+        e.preventDefault();
+        e.stopPropagation();
+        window.open(anchor.href, '_blank', 'noopener,noreferrer');
+      }
+    };
+
+    // Use capture phase to intercept clicks before they're handled
+    doc.addEventListener('click', handleLinkClick, true);
+
     setContentRef(doc.body);
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      doc.removeEventListener('click', handleLinkClick, true);
+    };
   }, []);
 
   return (

@@ -11,7 +11,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
 # NextAuth Configuration
-NEXTAUTH_URL=http://localhost:3002
+NEXTAUTH_URL=http://localhost:3009
 NEXTAUTH_SECRET=your_nextauth_secret_here
 
 # Stripe Configuration (for premium features)
@@ -20,12 +20,13 @@ STRIPE_SECRET_KEY=your_stripe_secret_key
 STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
 
 # App Configuration
-NEXT_PUBLIC_APP_URL=http://localhost:3002
+NEXT_PUBLIC_APP_URL=http://localhost:3009
 ```
 
 ## How to Get These Values
 
 ### Supabase Keys
+
 1. Go to https://supabase.com/dashboard
 2. Select your project
 3. Go to Settings → API
@@ -35,13 +36,17 @@ NEXT_PUBLIC_APP_URL=http://localhost:3002
    - service_role key → `SUPABASE_SERVICE_ROLE_KEY` ⚠️ **KEEP THIS SECRET!**
 
 ### NextAuth Secret
+
 Generate a random secret:
+
 ```bash
 openssl rand -base64 32
 ```
+
 Or use: https://generate-secret.vercel.app/32
 
 ### Stripe Keys (Optional - for premium features)
+
 1. Go to https://dashboard.stripe.com
 2. Get your API keys from Developers → API keys
 3. Use TEST mode keys for development
