@@ -228,11 +228,7 @@ function TemplateCard({
           />
         ) : (
           <div
-            className={`absolute inset-0 bg-linear-to-br ${
-              isPremium
-                ? "from-purple-900/30 to-blue-900/30"
-                : "from-gray-800 to-gray-900"
-            } transition-transform duration-700 ${
+            className={`absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 transition-transform duration-700 ${
               isHovered ? "scale-110" : "scale-100"
             }`}
           />
