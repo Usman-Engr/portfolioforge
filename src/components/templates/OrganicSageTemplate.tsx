@@ -21,7 +21,13 @@ import {
 
 export default function OrganicSageTemplate({ data }: { data: PortfolioData }) {
   const {
-    personal = { name: "", title: "", bio: "", location: "", avatarUrl: "" } as any,
+    personal = {
+      name: "",
+      title: "",
+      bio: "",
+      location: "",
+      avatarUrl: "",
+    } as any,
     contact = { email: "", phone: "", website: "" } as any,
     social = {} as any,
     projects = [],
@@ -44,10 +50,10 @@ export default function OrganicSageTemplate({ data }: { data: PortfolioData }) {
   return (
     <div className="min-h-screen bg-[#E7E5E4] text-[#292524] font-serif selection:bg-[#57534E] selection:text-white overflow-x-hidden flex flex-col lg:flex-row">
       {/* ── Left Fixed Panel (Desktop) / Header (Mobile) ──────────────── */}
-      <aside className="lg:w-[45%] lg:h-screen lg:sticky lg:top-0 p-6 sm:p-12 xl:p-20 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-[#292524]/10 bg-[#E7E5E4] z-20">
-        {/* Nav / Minimal Header */}
-        <header className="flex justify-between items-center lg:items-start lg:flex-col gap-8 mb-16 lg:mb-0">
-          <span className="text-xl sm:text-2xl font-bold tracking-tight text-[#292524]">
+      <aside className="lg:w-[45%] xl:w-[35%] lg:h-screen xl:h-screen lg:sticky lg:top-0 xl:top-0 p-6 sm:p-12 xl:p-12 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-[#292524]/10 bg-[#E7E5E4] z-20">
+        {/* Nav / Minimal Header - Hidden on XL */}
+        <header className="flex justify-between items-center lg:items-start lg:flex-col xl:items-start gap-6 xl:gap-4 mb-8 lg:mb-0 shrink-0">
+          <span className="text-xl sm:text-2xl xl:hidden font-bold tracking-tight text-[#292524]">
             {personal.name?.split(" ")[0] || "SAGE"}
           </span>
           <a
@@ -59,7 +65,7 @@ export default function OrganicSageTemplate({ data }: { data: PortfolioData }) {
         </header>
 
         {/* Hero Content */}
-        <div className="space-y-6 sm:space-y-8 max-w-xl">
+        <div className="space-y-4 sm:space-y-6 xl:space-y-4 w-full flex-1 flex flex-col justify-center xl:justify-start xl:overflow-y-auto xl:pr-2">
           {/* Avatar */}
           {avatarUrl && (
             <motion.div
@@ -68,7 +74,7 @@ export default function OrganicSageTemplate({ data }: { data: PortfolioData }) {
               viewport={{ once: true }}
               variants={fadeUp as any}
               custom={0}
-              className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-white shadow-2xl"
+              className="w-20 h-20 sm:w-28 sm:h-28 xl:w-20 xl:h-20 rounded-full overflow-hidden border-4 border-white shadow-2xl"
             >
               <img
                 src={avatarUrl}
@@ -78,11 +84,19 @@ export default function OrganicSageTemplate({ data }: { data: PortfolioData }) {
             </motion.div>
           )}
 
-          <Leaf className="hidden lg:block w-8 h-8 text-[#57534E] mb-4" />
-          <h1 className="text-4xl sm:text-5xl xl:text-[5rem] font-medium tracking-tight leading-[1.1] text-[#292524]">
-            {personal.name?.split(" ")[0]} <br className="hidden sm:block" />
-            <span className="text-[#A8A29E] italic">
-              {personal.name?.split(" ").slice(1).join(" ")}
+          {/* Leaf icon - Hidden on XL */}
+          <Leaf className="hidden lg:block xl:hidden w-6 h-6 xl:w-7 xl:h-7 text-[#57534E] mb-2" />
+
+          {/* Complete Name - XL Shows Full Name After Avatar */}
+          <h1 className="text-4xl sm:text-5xl xl:text-2xl font-medium tracking-tight leading-[1.1] text-[#292524]">
+            <span className="xl:hidden">
+              {personal.name?.split(" ")[0]} <br className="hidden sm:block" />
+              <span className="text-[#A8A29E] italic">
+                {personal.name?.split(" ").slice(1).join(" ")}
+              </span>
+            </span>
+            <span className="hidden xl:inline text-[#292524]">
+              {personal.name}
             </span>
           </h1>
 
@@ -94,13 +108,14 @@ export default function OrganicSageTemplate({ data }: { data: PortfolioData }) {
               viewport={{ once: true }}
               variants={fadeUp as any}
               custom={1}
-              className="text-base sm:text-lg lg:text-xl text-[#57534E] font-sans font-medium"
+              className="text-sm sm:text-base lg:text-lg xl:text-sm text-[#57534E] font-sans font-medium"
             >
               {personal.title}
             </motion.p>
           )}
 
-          <p className="text-base sm:text-lg xl:text-xl leading-relaxed text-[#57534E] font-sans font-light max-w-md">
+          {/* Bio - Scrollable if long on XL */}
+          <p className="text-sm sm:text-base lg:text-lg xl:text-sm leading-relaxed text-[#57534E] font-sans font-light line-clamp-4 xl:line-clamp-none xl:max-h-40 xl:overflow-y-auto">
             {personal.bio}
           </p>
 
@@ -112,27 +127,107 @@ export default function OrganicSageTemplate({ data }: { data: PortfolioData }) {
               viewport={{ once: true }}
               variants={fadeUp as any}
               custom={2}
-              className="flex items-center gap-2 text-sm sm:text-base text-[#78716C] font-sans"
+              className="flex items-center gap-2 text-xs sm:text-sm xl:text-xs text-[#78716C] font-sans"
             >
-              <MapPin className="w-4 h-4" />
+              <MapPin className="w-3 h-3 xl:w-3 xl:h-3" />
               {personal.location}
             </motion.div>
           )}
 
-          <div className="hidden lg:flex gap-4 pt-4">
+          {/* Contact Info - XL Only */}
+          <div className="hidden xl:block space-y-2 pt-2">
+            {contact.email && (
+              <a
+                href={`mailto:${contact.email}`}
+                className="flex items-center gap-2 text-xs text-[#57534E] font-sans hover:text-[#292524] transition-colors break-all"
+              >
+                <Mail className="w-3 h-3 shrink-0" />
+                {contact.email}
+              </a>
+            )}
+            {contact.phone && (
+              <a
+                href={`tel:${contact.phone}`}
+                className="flex items-center gap-2 text-xs text-[#57534E] font-sans hover:text-[#292524] transition-colors"
+              >
+                <Phone className="w-3 h-3 shrink-0" />
+                {contact.phone}
+              </a>
+            )}
+          </div>
+
+          {/* Connect Button - Hidden on XL, shown on other screens */}
+          <div className="hidden lg:flex xl:hidden gap-3 xl:gap-3 pt-3 xl:pt-2 shrink-0">
             <a
               href={`mailto:${contact.email}`}
-              className="px-8 py-4 bg-[#292524] text-[#E7E5E4] rounded-full font-sans text-xs font-bold uppercase tracking-widest hover:bg-[#44403C] transition-colors flex items-center gap-3"
+              className="px-6 xl:px-7 py-3 xl:py-3 bg-[#292524] text-[#E7E5E4] rounded-full font-sans text-xs font-bold uppercase tracking-widest hover:bg-[#44403C] transition-colors flex items-center gap-2 xl:gap-2"
             >
-              Connect <ArrowDownRight className="w-4 h-4" />
+              Connect <ArrowDownRight className="w-3 h-3 xl:w-4 xl:h-4" />
             </a>
           </div>
         </div>
 
-        {/* Footer Info - Desktop Only */}
-        <div className="hidden lg:block font-sans text-xs text-[#A8A29E] mt-16">
-          <div className="pt-8 border-t border-[#292524]/10">
-            <span className="font-bold uppercase tracking-[0.3em]">
+        {/* Footer Social Links - XL Only */}
+        <div className="hidden xl:block pt-4 border-t border-[#292524]/10 shrink-0 space-y-3">
+          {/* Social Icons */}
+          <div className="flex justify-center gap-4">
+            {social.github && (
+              <a
+                href={`https://github.com/${social.github}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#78716C] hover:text-[#292524] transition-colors"
+                aria-label="GitHub"
+              >
+                <Github className="w-4 h-4" />
+              </a>
+            )}
+            {social.linkedin && (
+              <a
+                href={`https://linkedin.com/in/${social.linkedin}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#78716C] hover:text-[#292524] transition-colors"
+                aria-label="LinkedIn"
+              >
+                <Linkedin className="w-4 h-4" />
+              </a>
+            )}
+            {social.twitter && (
+              <a
+                href={`https://twitter.com/${social.twitter}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#78716C] hover:text-[#292524] transition-colors"
+                aria-label="Twitter"
+              >
+                <Twitter className="w-4 h-4" />
+              </a>
+            )}
+            {social.instagram && (
+              <a
+                href={`https://instagram.com/${social.instagram}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#78716C] hover:text-[#292524] transition-colors"
+                aria-label="Instagram"
+              >
+                <Instagram className="w-4 h-4" />
+              </a>
+            )}
+          </div>
+          {/* Copyright */}
+          <div className="font-sans text-[9px] text-[#A8A29E] text-center">
+            <span className="font-bold uppercase tracking-[0.2em]">
+              © {new Date().getFullYear()}
+            </span>
+          </div>
+        </div>
+
+        {/* Footer Info - Desktop Only, Hidden on XL */}
+        <div className="hidden lg:block xl:hidden font-sans text-[10px] xl:text-[10px] text-[#A8A29E] shrink-0">
+          <div className="pt-4 xl:pt-3 border-t border-[#292524]/10">
+            <span className="font-bold uppercase tracking-[0.2em] xl:tracking-[0.3em]">
               ORGANIC SAGE
             </span>
           </div>
@@ -140,8 +235,8 @@ export default function OrganicSageTemplate({ data }: { data: PortfolioData }) {
       </aside>
 
       {/* ── Right Scrollable Panel ─────────────────────────────────────── */}
-      <main className="lg:w-[55%] flex-1 bg-white relative">
-        <div className="p-6 sm:p-12 xl:p-20 space-y-32 sm:space-y-40 min-h-screen">
+      <main className="lg:w-[55%] xl:w-[65%] flex-1 bg-white relative lg:h-screen lg:overflow-y-auto">
+        <div className="p-6 sm:p-12 xl:p-20 space-y-32 sm:space-y-40 min-h-screen lg:min-h-0">
           {/* Projects Stream */}
           {projects.length > 0 && (
             <section className="space-y-16 sm:space-y-24">
@@ -272,10 +367,9 @@ export default function OrganicSageTemplate({ data }: { data: PortfolioData }) {
           {/* Education Section */}
           {education.length > 0 && (
             <section className="space-y-12">
-              <div className="flex items-center gap-4">
-                <GraduationCap className="w-6 h-6 text-[#57534E]" />
-                <h2 className="text-3xl sm:text-4xl font-medium">Education</h2>
-              </div>
+              <h2 className="text-3xl sm:text-4xl font-medium border-b border-[#E7E5E4] pb-6 sm:pb-8">
+                Education
+              </h2>
               <div className="space-y-8">
                 {education.map((edu, i) => (
                   <motion.div
@@ -344,12 +438,11 @@ export default function OrganicSageTemplate({ data }: { data: PortfolioData }) {
           {/* Contact & Social Footer */}
           <footer className="pt-20 sm:pt-32 pb-10 text-center space-y-8 border-t border-[#E7E5E4] mt-32">
             <h2 className="text-3xl sm:text-5xl font-medium leading-tight">
-              Let&apos;s Create <br />
-              Together
+              Let&apos;s Create Together
             </h2>
-            <p className="text-[#A8A29E] font-sans max-w-sm mx-auto text-sm leading-relaxed pb-4">
-              Open for collaborations and new opportunities. Reach out to start a
-              conversation.
+            <p className="text-[#A8A29E] font-sans  mx-auto text-sm leading-relaxed pb-4">
+              Open for collaborations and new opportunities. Reach out to start
+              a conversation.
             </p>
 
             {/* Contact Info */}
@@ -442,7 +535,7 @@ export default function OrganicSageTemplate({ data }: { data: PortfolioData }) {
             )}
 
             <div className="pt-16 text-[9px] font-sans font-bold uppercase tracking-[0.3em] text-[#A8A29E]">
-              © {new Date().getFullYear()} ORGANIC SAGE STUDIO
+              © {new Date().getFullYear()} PORTFOLIO FORGE ALL RIGHTS RESERVED
             </div>
           </footer>
         </div>
