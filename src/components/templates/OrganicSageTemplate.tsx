@@ -59,7 +59,7 @@ export default function OrganicSageTemplate({ data }: { data: PortfolioData }) {
         </header>
 
         {/* Hero Content */}
-        <div className="space-y-8 sm:space-y-12 max-w-xl">
+        <div className="space-y-6 sm:space-y-8 max-w-xl">
           {/* Avatar */}
           {avatarUrl && (
             <motion.div
@@ -68,7 +68,7 @@ export default function OrganicSageTemplate({ data }: { data: PortfolioData }) {
               viewport={{ once: true }}
               variants={fadeUp as any}
               custom={0}
-              className="w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden border-4 border-white shadow-2xl"
+              className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-white shadow-2xl"
             >
               <img
                 src={avatarUrl}
@@ -78,16 +78,47 @@ export default function OrganicSageTemplate({ data }: { data: PortfolioData }) {
             </motion.div>
           )}
 
-          <Leaf className="hidden lg:block w-8 h-8 text-[#57534E] mb-8" />
-          <h1 className="text-5xl sm:text-6xl xl:text-[5.5rem] font-medium tracking-tight leading-[1] text-[#292524]">
+          <Leaf className="hidden lg:block w-8 h-8 text-[#57534E] mb-4" />
+          <h1 className="text-4xl sm:text-5xl xl:text-[5rem] font-medium tracking-tight leading-[1.1] text-[#292524]">
             {personal.name?.split(" ")[0]} <br className="hidden sm:block" />
             <span className="text-[#A8A29E] italic">
               {personal.name?.split(" ").slice(1).join(" ")}
             </span>
           </h1>
-          <p className="text-lg sm:text-xl xl:text-2xl leading-relaxed text-[#57534E] font-sans font-light max-w-md">
+
+          {/* Title - Prominent Display */}
+          {personal.title && (
+            <motion.p
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeUp as any}
+              custom={1}
+              className="text-base sm:text-lg lg:text-xl text-[#57534E] font-sans font-medium"
+            >
+              {personal.title}
+            </motion.p>
+          )}
+
+          <p className="text-base sm:text-lg xl:text-xl leading-relaxed text-[#57534E] font-sans font-light max-w-md">
             {personal.bio}
           </p>
+
+          {/* Location - Always Visible */}
+          {personal.location && (
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeUp as any}
+              custom={2}
+              className="flex items-center gap-2 text-sm sm:text-base text-[#78716C] font-sans"
+            >
+              <MapPin className="w-4 h-4" />
+              {personal.location}
+            </motion.div>
+          )}
+
           <div className="hidden lg:flex gap-4 pt-4">
             <a
               href={`mailto:${contact.email}`}
@@ -98,21 +129,12 @@ export default function OrganicSageTemplate({ data }: { data: PortfolioData }) {
           </div>
         </div>
 
-        {/* Meta Info (Desktop) / Footer info (Mobile) */}
-        <div className="hidden lg:grid grid-cols-2 gap-8 font-sans text-sm text-[#57534E] mt-16">
-          {personal.location && (
-            <div>
-              <span className="block text-xs font-bold uppercase tracking-widest text-[#A8A29E] mb-3">
-                Location
-              </span>
-              {personal.location}
-            </div>
-          )}
-          <div>
-            <span className="block text-xs font-bold uppercase tracking-widest text-[#A8A29E] mb-3">
-              Focus
+        {/* Footer Info - Desktop Only */}
+        <div className="hidden lg:block font-sans text-xs text-[#A8A29E] mt-16">
+          <div className="pt-8 border-t border-[#292524]/10">
+            <span className="font-bold uppercase tracking-[0.3em]">
+              ORGANIC SAGE
             </span>
-            {personal.title}
           </div>
         </div>
       </aside>
