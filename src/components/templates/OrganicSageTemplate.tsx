@@ -237,7 +237,91 @@ export default function OrganicSageTemplate({ data }: { data: PortfolioData }) {
       {/* ── Right Scrollable Panel ─────────────────────────────────────── */}
       <main className="lg:w-[55%] xl:w-[65%] flex-1 bg-white relative lg:h-screen lg:overflow-y-auto">
         <div className="p-6 sm:p-12 xl:p-20 space-y-32 sm:space-y-40 min-h-screen lg:min-h-0">
-          {/* Projects Stream */}
+          {/* Experience List - Shows 1st on all screens */}
+          {experience.length > 0 && (
+            <section className="space-y-12">
+              <h2 className="text-3xl sm:text-4xl font-medium border-b border-[#E7E5E4] pb-6 sm:pb-8">
+                Experience
+              </h2>
+              <div className="space-y-4">
+                {experience.map((exp, i) => (
+                  <motion.div
+                    key={i}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true }}
+                    variants={fadeUp as any}
+                    custom={i}
+                    className="flex flex-col sm:flex-row justify-between sm:items-baseline group hover:bg-[#FAFAFA] -mx-4 p-4 sm:p-6 rounded-2xl transition-colors gap-2 sm:gap-4"
+                  >
+                    <div className="space-y-2 max-w-lg">
+                      <h4 className="text-xl sm:text-2xl font-medium break-words">
+                        {exp.role}
+                      </h4>
+                      <p className="text-xs sm:text-sm font-bold uppercase tracking-widest text-[#A8A29E] font-sans">
+                        {exp.company}
+                      </p>
+                      {exp.description && (
+                        <p className="text-sm text-[#78716C] font-sans font-light leading-relaxed mt-2">
+                          {exp.description}
+                        </p>
+                      )}
+                    </div>
+                    <span className="text-xs sm:text-sm font-sans font-medium text-[#78716C] uppercase tracking-widest shrink-0 mt-2 sm:mt-0 flex items-center gap-2">
+                      <Calendar className="w-3 h-3" />
+                      {exp.duration}
+                    </span>
+                  </motion.div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Education Section - Shows 2nd on all screens */}
+          {education.length > 0 && (
+            <section className="space-y-12">
+              <h2 className="text-3xl sm:text-4xl font-medium border-b border-[#E7E5E4] pb-6 sm:pb-8">
+                Education
+              </h2>
+              <div className="space-y-8">
+                {education.map((edu, i) => (
+                  <motion.div
+                    key={i}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true }}
+                    variants={fadeUp as any}
+                    custom={i}
+                    className="group hover:bg-[#FAFAFA] -mx-4 p-6 rounded-2xl transition-colors"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2">
+                        <div className="space-y-1">
+                          <h4 className="text-xl sm:text-2xl font-medium break-words">
+                            {edu.degree}
+                          </h4>
+                          <p className="text-sm font-bold uppercase tracking-widest text-[#A8A29E] font-sans">
+                            {edu.institution}
+                          </p>
+                        </div>
+                        <span className="text-xs sm:text-sm font-sans font-medium text-[#78716C] uppercase tracking-widest shrink-0 flex items-center gap-2">
+                          <Calendar className="w-3 h-3" />
+                          {edu.year}
+                        </span>
+                      </div>
+                      {edu.description && (
+                        <p className="text-sm text-[#78716C] font-sans font-light leading-relaxed mt-3">
+                          {edu.description}
+                        </p>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Selected Works / Projects - Shows 3rd on all screens */}
           {projects.length > 0 && (
             <section className="space-y-16 sm:space-y-24">
               <div className="flex items-center gap-4">
@@ -317,90 +401,6 @@ export default function OrganicSageTemplate({ data }: { data: PortfolioData }) {
                       <div className="hidden sm:flex w-12 h-12 rounded-full border border-[#292524]/10 items-center justify-center group-hover:bg-[#292524] group-hover:text-white transition-all transform group-hover:-rotate-45 shrink-0">
                         <MoveRight className="w-5 h-5" />
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Experience List */}
-          {experience.length > 0 && (
-            <section className="space-y-12">
-              <h2 className="text-3xl sm:text-4xl font-medium border-b border-[#E7E5E4] pb-6 sm:pb-8">
-                Experience
-              </h2>
-              <div className="space-y-4">
-                {experience.map((exp, i) => (
-                  <motion.div
-                    key={i}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true }}
-                    variants={fadeUp as any}
-                    custom={i}
-                    className="flex flex-col sm:flex-row justify-between sm:items-baseline group hover:bg-[#FAFAFA] -mx-4 p-4 sm:p-6 rounded-2xl transition-colors gap-2 sm:gap-4"
-                  >
-                    <div className="space-y-2 max-w-lg">
-                      <h4 className="text-xl sm:text-2xl font-medium break-words">
-                        {exp.role}
-                      </h4>
-                      <p className="text-xs sm:text-sm font-bold uppercase tracking-widest text-[#A8A29E] font-sans">
-                        {exp.company}
-                      </p>
-                      {exp.description && (
-                        <p className="text-sm text-[#78716C] font-sans font-light leading-relaxed mt-2">
-                          {exp.description}
-                        </p>
-                      )}
-                    </div>
-                    <span className="text-xs sm:text-sm font-sans font-medium text-[#78716C] uppercase tracking-widest shrink-0 mt-2 sm:mt-0 flex items-center gap-2">
-                      <Calendar className="w-3 h-3" />
-                      {exp.duration}
-                    </span>
-                  </motion.div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Education Section */}
-          {education.length > 0 && (
-            <section className="space-y-12">
-              <h2 className="text-3xl sm:text-4xl font-medium border-b border-[#E7E5E4] pb-6 sm:pb-8">
-                Education
-              </h2>
-              <div className="space-y-8">
-                {education.map((edu, i) => (
-                  <motion.div
-                    key={i}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true }}
-                    variants={fadeUp as any}
-                    custom={i}
-                    className="group hover:bg-[#FAFAFA] -mx-4 p-6 rounded-2xl transition-colors"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2">
-                        <div className="space-y-1">
-                          <h4 className="text-xl sm:text-2xl font-medium break-words">
-                            {edu.degree}
-                          </h4>
-                          <p className="text-sm font-bold uppercase tracking-widest text-[#A8A29E] font-sans">
-                            {edu.institution}
-                          </p>
-                        </div>
-                        <span className="text-xs sm:text-sm font-sans font-medium text-[#78716C] uppercase tracking-widest shrink-0 flex items-center gap-2">
-                          <Calendar className="w-3 h-3" />
-                          {edu.year}
-                        </span>
-                      </div>
-                      {edu.description && (
-                        <p className="text-sm text-[#78716C] font-sans font-light leading-relaxed mt-3">
-                          {edu.description}
-                        </p>
-                      )}
                     </div>
                   </motion.div>
                 ))}
