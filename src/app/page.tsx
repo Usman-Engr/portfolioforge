@@ -4,6 +4,8 @@ import { Hero } from "@/components/landing/Hero";
 import { templates } from "@/lib/templates";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   Check,
@@ -19,6 +21,8 @@ import Link from "next/link";
 import { Terminal, Palette, Briefcase, LayoutGrid } from "lucide-react";
 
 export default function Home() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<
     "all" | "developer" | "designer" | "corporate"
   >("all");
@@ -511,12 +515,18 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/dashboard"
+            <button
+              onClick={() => {
+                if (status === "authenticated") {
+                  router.push("/dashboard");
+                } else {
+                  router.push("/auth/signup");
+                }
+              }}
               className="w-full sm:w-auto px-10 py-5 bg-white text-black rounded-full font-black text-xs uppercase tracking-[0.2em] hover:scale-105 transition-transform shadow-[0_0_50px_rgba(255,255,255,0.3)]"
             >
-              Start Building Free
-            </Link>
+              {status === "authenticated" ? "Go to Dashboard" : "Start Building Free"}
+            </button>
             <Link
               href="/login"
               className="w-full sm:w-auto px-10 py-5 bg-black/30 backdrop-blur-md border border-white/20 text-white rounded-full font-bold text-xs uppercase tracking-[0.2em] hover:bg-black/50 transition-colors"

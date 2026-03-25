@@ -2,8 +2,10 @@
 
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
+import { useSession } from "next-auth/react";
 import {
   Sparkles,
   Zap,
@@ -16,6 +18,8 @@ import {
 } from "lucide-react";
 
 export const Hero = () => {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#050505] pt-16">
       {/* Cinematic Background */}
@@ -56,15 +60,20 @@ export const Hero = () => {
 
             {/* CTA Cluster */}
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <Link href="/auth/signup">
-                <Button
-                  size="lg"
-                  className="h-16 px-10 rounded-2xl bg-white text-black hover:bg-gray-200 font-black text-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-3"
-                >
-                  <Zap className="w-5 h-5 fill-current" />
-                  Launch Your Studio
-                </Button>
-              </Link>
+              <Button
+                size="lg"
+                onClick={() => {
+                  if (status === "authenticated") {
+                    router.push("/dashboard");
+                  } else {
+                    router.push("/auth/signup");
+                  }
+                }}
+                className="h-16 px-10 rounded-2xl bg-white text-black hover:bg-gray-200 font-black text-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-3"
+              >
+                <Zap className="w-5 h-5 fill-current" />
+                {status === "authenticated" ? "Go to Dashboard" : "Launch Your Studio"}
+              </Button>
               <Link href="/templates">
                 <Button
                   variant="outline"
