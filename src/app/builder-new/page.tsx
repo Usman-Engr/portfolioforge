@@ -40,7 +40,6 @@ import ExperienceForm from "@/components/builder/ExperienceForm";
 import EducationForm from "@/components/builder/EducationForm";
 import PublishModal from "@/components/builder/PublishModal";
 import TemplateSelector from "@/components/templates/TemplateSelector";
-import TemplatePreviewModal from "@/components/templates/TemplatePreviewModal";
 import { renderTemplate } from "@/lib/utils/template-renderer";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import IFramePreview from "@/components/templates/IFramePreview";
@@ -79,8 +78,6 @@ function BuilderContent() {
 
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
-  const [showTemplatePreview, setShowTemplatePreview] = useState(false);
-  const [previewTemplate, setPreviewTemplate] = useState<any>(null);
   const [currentSlug, setCurrentSlug] = useState<string | undefined>();
   const [portfolioId, setPortfolioId] = useState<string | undefined>();
   const [selectedTemplateId, setSelectedTemplateId] =
@@ -458,26 +455,8 @@ function BuilderContent() {
         onClose={() => setShowTemplateSelector(false)}
         selectedTemplateId={selectedTemplateId}
         setSelectedTemplateId={setSelectedTemplateId}
-        setPreviewTemplate={setPreviewTemplate}
-        setShowTemplatePreview={setShowTemplatePreview}
+        portfolioData={portfolioData}
       />
-
-      {showTemplatePreview && previewTemplate && (
-        <TemplatePreviewModal
-          template={previewTemplate}
-          customData={portfolioData}
-          onClose={() => {
-            setShowTemplatePreview(false);
-            setPreviewTemplate(null);
-          }}
-          onUse={() => {
-            setSelectedTemplateId(previewTemplate.id);
-            setShowTemplatePreview(false);
-            setShowTemplateSelector(false);
-            setPreviewTemplate(null);
-          }}
-        />
-      )}
 
       <PublishModal
         isOpen={showPublishModal}
@@ -536,10 +515,19 @@ function TemplateSelectorModal({
   onClose,
   selectedTemplateId,
   setSelectedTemplateId,
-  setPreviewTemplate,
-  setShowTemplatePreview,
+  portfolioData,
 }: any) {
+  const router = useRouter();
+
   if (!isOpen) return null;
+
+  const handlePreview = (template: any) => {
+    // Save current portfolio data to sessionStorage
+    sessionStorage.setItem("builderPreviewData", JSON.stringify(portfolioData));
+    // Navigate to preview page with template ID
+    router.push(`/preview/template?templateId=${template.id}`);
+  };
+
   return (
     <div className="fixed inset-0 z-1000 flex items-center justify-center bg-black/95 backdrop-blur-2xl px-4 py-8 animate-fade-in text-white selection:bg-blue-500/30">
       <div className="bg-[#0a0a0a] rounded-[40px] shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-white/10">
@@ -566,10 +554,7 @@ function TemplateSelectorModal({
               setSelectedTemplateId(templateId);
               onClose();
             }}
-            onPreview={(template) => {
-              setPreviewTemplate(template);
-              setShowTemplatePreview(true);
-            }}
+            onPreview={handlePreview}
           />
         </div>
       </div>

@@ -14,16 +14,11 @@ import {
   Layout,
   Star,
 } from "lucide-react";
-import TemplatePreviewModal from "@/components/templates/TemplatePreviewModal";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export default function TemplatesPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateInfo | null>(
-    null
-  );
-  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -36,8 +31,7 @@ export default function TemplatesPage() {
   };
 
   const handlePreview = (template: TemplateInfo) => {
-    setSelectedTemplate(template);
-    setShowPreview(true);
+    router.push(`/templates/preview/${template.id}`);
   };
 
   if (status === "loading") {
@@ -179,17 +173,6 @@ export default function TemplatesPage() {
           </section>
         </div>
       </div>
-
-      {/* Preview Modal */}
-      <AnimatePresence>
-        {showPreview && selectedTemplate && (
-          <TemplatePreviewModal
-            template={selectedTemplate}
-            onClose={() => setShowPreview(false)}
-            onUse={() => handleUseTemplate(selectedTemplate)}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 }

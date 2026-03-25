@@ -24,8 +24,6 @@ import ConfirmModal from "@/components/ui/ConfirmModal";
 import LoadingOverlay from "@/components/ui/LoadingOverlay";
 import IntelligenceModal from "@/components/dashboard/IntelligenceModal";
 import { toast } from "sonner";
-import TemplatePreviewModal from "@/components/templates/TemplatePreviewModal";
-import { templates } from "@/lib/templates";
 
 interface Portfolio {
   id: string;
@@ -63,13 +61,9 @@ export default function DashboardPage() {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showIntelligenceModal, setShowIntelligenceModal] = useState(false);
-  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   const [intelligencePortfolio, setIntelligencePortfolio] =
     useState<Portfolio | null>(null);
-  const [previewPortfolio, setPreviewPortfolio] = useState<Portfolio | null>(
-    null,
-  );
 
   const [portfolioToDelete, setPortfolioToDelete] = useState<Portfolio | null>(
     null,
@@ -416,8 +410,7 @@ export default function DashboardPage() {
                       setShowIntelligenceModal(true);
                     }}
                     onPreview={() => {
-                      setPreviewPortfolio(portfolio);
-                      setShowPreviewModal(true);
+                      router.push(`/portfolio/${portfolio.id}/preview`);
                     }}
                     isDeleting={deletingId === portfolio.id}
                   />
@@ -513,25 +506,6 @@ export default function DashboardPage() {
           intelligencePortfolio?.data?.personal?.name || "Concept Studio"
         }
       />
-
-      {/* Preview Modal */}
-      <AnimatePresence>
-        {showPreviewModal && previewPortfolio && (
-          <TemplatePreviewModal
-            template={
-              templates.find((t) => t.id === previewPortfolio.template_id) ||
-              templates[0]
-            }
-            customData={previewPortfolio.data}
-            onClose={() => {
-              setShowPreviewModal(false);
-              setPreviewPortfolio(null);
-            }}
-            onUse={() => {}} // No-op for dashboard preview
-            hideUseButton={true}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 }

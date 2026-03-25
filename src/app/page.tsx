@@ -4,7 +4,6 @@ import { Hero } from "@/components/landing/Hero";
 import { templates } from "@/lib/templates";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-import TemplatePreviewModal from "@/components/templates/TemplatePreviewModal";
 import {
   ArrowRight,
   Check,
@@ -20,7 +19,6 @@ import Link from "next/link";
 import { Terminal, Palette, Briefcase, LayoutGrid } from "lucide-react";
 
 export default function Home() {
-  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<
     "all" | "developer" | "designer" | "corporate"
   >("all");
@@ -424,12 +422,12 @@ export default function Home() {
                         {template.description}
                       </p>
                       <div className="flex flex-col gap-3 w-full max-w-[200px]">
-                        <button
-                          onClick={() => setSelectedTemplate(template)}
-                          className="w-full px-6 py-3 bg-white text-black rounded-full font-bold text-xs uppercase tracking-widest hover:scale-105 transition-transform"
+                        <Link
+                          href={`/templates/preview/${template.id}`}
+                          className="w-full px-6 py-3 bg-white text-black rounded-full font-bold text-xs uppercase tracking-widest hover:scale-105 transition-transform text-center"
                         >
                           Live Preview
-                        </button>
+                        </Link>
                         <Link
                           href={`/dashboard?template=${template.id}`}
                           className="w-full px-6 py-3 bg-white/10 border border-white/20 text-white rounded-full font-bold text-xs uppercase tracking-widest hover:bg-white/20 transition-all"
@@ -528,19 +526,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* --- PREVIEW MODAL --- */}
-      <AnimatePresence>
-        {selectedTemplate && (
-          <TemplatePreviewModal
-            template={selectedTemplate}
-            onClose={() => setSelectedTemplate(null)}
-            onUse={() => {
-              window.location.href = `/dashboard?template=${selectedTemplate.id}`;
-            }}
-          />
-        )}
-      </AnimatePresence>
     </main>
   );
 }
