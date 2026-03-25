@@ -18,20 +18,20 @@ export default function ClassicProfessional({ data }: Props) {
 
   return (
     <div
-      id="resume-canvas"
+      className="resume-section"
       style={{
         fontFamily: "'Georgia', 'Times New Roman', serif",
         width: "210mm",
-        minHeight: "297mm",
+        // NO minHeight - let content determine height to avoid extra pages
         backgroundColor: "#ffffff",
         color: "#1a1a1a",
-        margin: "0 auto",
+        margin: "0",
+        padding: "0",
         boxSizing: "border-box",
         wordBreak: "break-word",
         WebkitPrintColorAdjust: "exact",
         printColorAdjust: "exact",
-        display: "flex",
-        flexDirection: "column",
+        display: "block", // Block instead of flex to prevent stretching
         position: "relative",
         zIndex: 0,
       }}
@@ -48,7 +48,7 @@ export default function ClassicProfessional({ data }: Props) {
         <p style={{ fontSize: "14px", margin: "6px 0 0", color: "#a8c4e0", letterSpacing: "2px", textTransform: "uppercase", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
           {personal.jobTitle || "Professional Title"}
         </p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginTop: "16px", fontFamily: "Arial, sans-serif", fontSize: "11px", color: "#c8dcea" }}>
+        <div style={{ display: "block", flexWrap: "wrap", gap: "16px", marginTop: "16px", fontFamily: "Arial, sans-serif", fontSize: "11px", color: "#c8dcea" }}>
           {personal.email && <span>✉ {personal.email}</span>}
           {personal.phone && <span>✆ {personal.phone}</span>}
           {personal.location && <span>⊙ {personal.location}</span>}
@@ -58,7 +58,7 @@ export default function ClassicProfessional({ data }: Props) {
       </div>
 
       {/* Body: Two-column */}
-      <div style={{ display: "flex", flexDirection: "row" }}>
+      <div style={{ display: "block", flexDirection: "row" }}>
         {/* Left Column */}
         <div style={{ width: "62%", padding: "28px 24px 28px 40px", borderRight: "1px solid #e8eef4" }}>
           {/* Summary */}
@@ -79,7 +79,7 @@ export default function ClassicProfessional({ data }: Props) {
               </div>
               {workExperience.map((job, i) => (
                 <div key={i} style={{ marginBottom: "18px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div style={{ display: "block", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div>
                       <h3 style={{ fontSize: "13px", fontWeight: 700, margin: 0, color: "#111", fontFamily: "Arial, sans-serif" }}>{job.position}</h3>
                       <p style={{ fontSize: "12px", color: accentColor, margin: "2px 0", fontFamily: "Arial, sans-serif", fontStyle: "italic" }}>
@@ -113,7 +113,7 @@ export default function ClassicProfessional({ data }: Props) {
               </div>
               {education.map((edu, i) => (
                 <div key={i} style={{ marginBottom: "12px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <div style={{ display: "block", justifyContent: "space-between" }}>
                     <div>
                       <h3 style={{ fontSize: "12.5px", fontWeight: 700, margin: 0, fontFamily: "Arial, sans-serif" }}>{edu.degree}{edu.fieldOfStudy ? `, ${edu.fieldOfStudy}` : ""}</h3>
                       <p style={{ fontSize: "11.5px", color: accentColor, margin: "2px 0", fontFamily: "Arial, sans-serif", fontStyle: "italic" }}>{edu.institution}</p>
@@ -169,7 +169,7 @@ export default function ClassicProfessional({ data }: Props) {
                 <h2 style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase", color: accentColor, margin: 0, fontFamily: "Arial, sans-serif" }}>Languages</h2>
               </div>
               {languages.map((lang, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+                <div key={i} style={{ display: "block", justifyContent: "space-between", marginBottom: "6px" }}>
                   <span style={{ fontSize: "11px", fontFamily: "Arial, sans-serif", color: "#333" }}>{lang.language}</span>
                   <span style={{ fontSize: "10px", fontFamily: "Arial, sans-serif", color: "#666", fontStyle: "italic" }}>{lang.proficiency}</span>
                 </div>

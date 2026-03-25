@@ -25,7 +25,7 @@ export default function MinimalistClean({ data }: Props) {
       style={{
         fontFamily: "'Arial', 'Helvetica', sans-serif",
         width: "210mm",
-        minHeight: "297mm",
+        minHeight: "auto",
         backgroundColor: "#ffffff",
         color: "#111827",
         margin: "0 auto",
@@ -42,7 +42,7 @@ export default function MinimalistClean({ data }: Props) {
           {personal.fullName || "Your Name"}
         </h1>
         <p style={{ fontSize: "13px", margin: "0 0 12px", color: "#374151" }}>{personal.jobTitle || "Professional Title"}</p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", fontSize: "11px", color: "#6b7280" }}>
+        <div style={{ display: "block", flexWrap: "wrap", gap: "16px", fontSize: "11px", color: "#6b7280" }}>
           {personal.email && <span>{personal.email}</span>}
           {personal.phone && <span>{personal.phone}</span>}
           {personal.location && <span>{personal.location}</span>}
@@ -71,7 +71,7 @@ export default function MinimalistClean({ data }: Props) {
             <SectionHeader>Experience</SectionHeader>
             {workExperience.map((job, i) => (
               <div key={i} style={{ marginBottom: i < workExperience.length - 1 ? "16px" : 0 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                <div style={{ display: "block", justifyContent: "space-between", alignItems: "baseline" }}>
                   <div>
                     <span style={{ fontSize: "13px", fontWeight: 700, color: "#111827" }}>{job.position}</span>
                     <span style={{ fontSize: "12px", color: "#374151" }}> · {job.company}{job.location ? `, ${job.location}` : ""}</span>
@@ -102,7 +102,7 @@ export default function MinimalistClean({ data }: Props) {
           <section>
             <SectionHeader>Education</SectionHeader>
             {education.map((edu, i) => (
-              <div key={i} style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+              <div key={i} style={{ display: "block", justifyContent: "space-between", marginBottom: "10px" }}>
                 <div>
                   <p style={{ fontSize: "12.5px", fontWeight: 700, margin: "0 0 1px", color: "#111827" }}>{edu.degree}{edu.fieldOfStudy ? ` in ${edu.fieldOfStudy}` : ""}</p>
                   <p style={{ fontSize: "11.5px", color: "#4b5563", margin: 0 }}>{edu.institution}{edu.gpa ? ` · GPA ${edu.gpa}` : ""}</p>
@@ -123,7 +123,7 @@ export default function MinimalistClean({ data }: Props) {
           <section>
             <SectionHeader>Skills</SectionHeader>
             {skills.filter((g) => g.skills.length > 0).map((group, i) => (
-              <div key={i} style={{ display: "flex", gap: "8px", marginBottom: "5px", alignItems: "baseline" }}>
+              <div key={i} style={{ display: "block", gap: "8px", marginBottom: "5px", alignItems: "baseline" }}>
                 <span style={{ fontSize: "10.5px", fontWeight: 700, color: "#374151", minWidth: "80px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{group.category}</span>
                 <span style={{ fontSize: "11.5px", color: "#4b5563" }}>{group.skills.join(", ")}</span>
               </div>
@@ -136,7 +136,7 @@ export default function MinimalistClean({ data }: Props) {
       {(certifications.length > 0 || languages.length > 0) && (
         <>
           <Divider />
-          <div style={{ display: "flex", gap: "40px" }}>
+          <div style={{ display: "block", gap: "40px" }}>
             {certifications.length > 0 && (
               <div style={{ flex: 1 }}>
                 <SectionHeader>Certifications</SectionHeader>
