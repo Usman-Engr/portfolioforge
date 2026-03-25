@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
@@ -26,6 +26,7 @@ import {
   ChevronLeft,
   X,
   CheckCircle,
+  Edit,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -86,6 +87,7 @@ function BuilderContent() {
     useState<string>("minimal-pro");
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
 
   // Derived save status
   const saveStatus = lastSaved ? "saved" : "unsaved";
@@ -134,6 +136,40 @@ function BuilderContent() {
       loadPortfolio();
     }
   }, [searchParams, session, status]);
+
+  // Ref for preview iframe communication
+  const previewRef = useRef<HTMLIFrameElement>(null);
+
+  // Scroll to section in preview when activeSection changes
+  useEffect(() => {
+    if (!showMobilePreview) return; // Only scroll on mobile when preview is visible
+
+    // Map builder sections to template element IDs
+    const sectionElementMap: Record<string, string> = {
+      personal: "#about, #hero, #personal",
+      experience: "#experience",
+      skills: "#skills",
+      projects: "#projects",
+      education: "#education",
+      contact: "#contact, #footer",
+      social: "#contact, #social",
+    };
+
+    const targetSelector = sectionElementMap[activeSection];
+    if (!targetSelector) return;
+
+    // Send scroll message to iframe
+    const iframe = previewRef.current;
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.postMessage(
+        {
+          type: "scrollToSection",
+          selector: targetSelector,
+        },
+        "*"
+      );
+    }
+  }, [activeSection, showMobilePreview]);
 
   const handleSaveChanges = async () => {
     if (!session) {
@@ -262,20 +298,20 @@ function BuilderContent() {
   return (
     <div className="h-screen flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden text-slate-900 dark:text-slate-100">
       {/* Top Bar - Premium Studio Header */}
-      <header className="h-20 border-b border-white/5 bg-black/60 backdrop-blur-2xl px-10 flex items-center justify-between z-100">
-        <div className="flex items-center gap-10">
+      <header className="h-16 md:h-20 border-b border-white/5 bg-black/60 backdrop-blur-2xl px-4 md:px-10 flex items-center justify-between z-100 flex-shrink-0">
+        <div className="flex items-center gap-4 md:gap-10">
           <Link href="/dashboard" className="group">
-            <div className="flex items-center gap-3 text-gray-400 group-hover:text-white transition-colors">
-              <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-              <span className="text-xs font-black uppercase tracking-widest">
+            <div className="flex items-center gap-2 md:gap-3 text-gray-400 group-hover:text-white transition-colors">
+              <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 group-hover:-translate-x-1 transition-transform" />
+              <span className="hidden sm:block text-xs font-black uppercase tracking-widest">
                 Studio Workspace
               </span>
             </div>
           </Link>
 
-          <div className="h-8 w-px bg-white/5" />
+          <div className="hidden sm:block h-8 w-px bg-white/5" />
 
-          <div className="flex flex-col">
+          <div className="hidden sm:flex flex-col">
             <div className="flex items-center gap-3">
               <h1 className="text-xl font-black tracking-tight text-white uppercase italic">
                 {portfolioData.personal.name || "UNNAMED CREATION"}
@@ -322,7 +358,7 @@ function BuilderContent() {
           />
         </div>
 
-        <div className="flex items-center gap-3 md:gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
           {/* Save Status Indicator - Desktop */}
           <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/5">
             <div className={`w-2 h-2 rounded-full ${
@@ -337,14 +373,23 @@ function BuilderContent() {
             </span>
           </div>
 
-          {/* Mobile Save Status */}
-          <div className="flex lg:hidden items-center gap-1.5 px-2 py-1 bg-white/5 rounded-full border border-white/5">
-            <div className={`w-1.5 h-1.5 rounded-full ${
-              saveStatus === "saved" || lastSaved
-                ? "bg-green-500"
-                : "bg-amber-500 animate-pulse"
-            }`} />
-          </div>
+          {/* Mobile Toggle Preview/Edit Button */}
+          <button
+            onClick={() => setShowMobilePreview(!showMobilePreview)}
+            className="md:hidden flex items-center gap-1.5 px-3 py-2 bg-blue-600 border border-blue-500 rounded-full text-white text-[10px] font-black uppercase hover:bg-blue-700 transition-colors"
+          >
+            {showMobilePreview ? (
+              <>
+                <Edit className="w-3.5 h-3.5" />
+                <span>Edit</span>
+              </>
+            ) : (
+              <>
+                <Eye className="w-3.5 h-3.5" />
+                <span>Preview</span>
+              </>
+            )}
+          </button>
 
           <button
             onClick={() => setShowTemplateSelector(true)}
@@ -386,35 +431,38 @@ function BuilderContent() {
             </button>
           )}
 
-          {/* Mobile Deploy Button - Only for NEW portfolios */}
-          {!portfolioId && (
-            <button
-              onClick={() => setShowPublishModal(true)}
-              className="md:hidden flex items-center justify-center w-10 h-10 bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-full font-black shadow-lg"
-            >
-              <Rocket className="w-4 h-4" />
-            </button>
-          )}
-
-          {/* Mobile Save Button */}
-          <button
-            onClick={handleSaveChanges}
-            disabled={isSaving}
-            className="md:hidden flex items-center justify-center w-10 h-10 bg-gray-700 text-white rounded-full shadow-lg disabled:opacity-50"
-          >
-            {isSaving ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4" />
+          {/* Mobile Action Buttons */}
+          <div className="md:hidden flex items-center gap-2">
+            {/* Mobile Deploy Button - Only for NEW portfolios */}
+            {!portfolioId && (
+              <button
+                onClick={() => setShowPublishModal(true)}
+                className="flex items-center justify-center w-10 h-10 bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-full font-black shadow-lg hover:scale-105 transition-transform"
+              >
+                <Rocket className="w-4 h-4" />
+              </button>
             )}
-          </button>
+
+            {/* Mobile Save Button */}
+            <button
+              onClick={handleSaveChanges}
+              disabled={isSaving}
+              className="flex items-center justify-center w-10 h-10 bg-gray-700 text-white rounded-full shadow-lg hover:scale-105 transition-transform disabled:opacity-50"
+            >
+              {isSaving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
       {/* Main Studio Area */}
       <main className="flex-1 flex overflow-hidden">
-        {/* Navigation Sidebar */}
-        <nav className="w-24 border-r border-white/5 bg-[#0a0a0a] flex flex-col items-center py-10 gap-6">
+        {/* Navigation Sidebar - Hidden on mobile, visible on desktop */}
+        <nav className={`w-24 border-r border-white/5 bg-[#0a0a0a] flex-col items-center py-10 gap-6 hidden lg:flex`}>
           {sections.map((section) => (
             <button
               key={section.id}
@@ -445,8 +493,10 @@ function BuilderContent() {
         </nav>
 
         {/* Form Editor Panel */}
-        <aside className="w-[450px] border-r border-white/5 bg-[#050505] overflow-y-auto custom-scrollbar">
-          <div className="p-10">
+        <aside className={`w-full lg:w-[450px] border-r border-white/5 bg-[#050505] overflow-y-auto custom-scrollbar ${
+          showMobilePreview ? 'hidden' : 'block lg:block'
+        }`}>
+          <div className="p-6 pb-24 lg:p-10 lg:pb-10">
             <div className="mb-10">
               <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">
                 {sections.find((s) => s.id === activeSection)?.label}
@@ -531,8 +581,34 @@ function BuilderContent() {
           </div>
         </aside>
 
-        {/* Live Preview Display */}
-        <section className="flex-1 bg-slate-100 dark:bg-slate-950 flex flex-col items-center justify-center p-8 overflow-hidden">
+        {/* Mobile Section Navigation - Only shows on mobile when editing */}
+        <nav className={`lg:hidden fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-white/10 z-50 ${
+          showMobilePreview ? 'hidden' : 'block'
+        }`}>
+          <div className="flex items-center justify-around py-3 px-2 overflow-x-auto">
+            {sections.map((section) => (
+              <button
+                key={section.id}
+                onClick={() => setActiveSection(section.id as BuilderSection)}
+                className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all min-w-fit ${
+                  activeSection === section.id
+                    ? "bg-white text-black"
+                    : "text-gray-500 hover:text-white"
+                }`}
+              >
+                <section.icon className="w-4 h-4" />
+                <span className="text-[8px] font-black uppercase tracking-wider">
+                  {section.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        </nav>
+
+        {/* Live Preview Display - Hidden on mobile when editing, shown when preview mode is active */}
+        <section className={`flex-1 bg-slate-100 dark:bg-slate-950 flex flex-col items-center justify-center overflow-hidden ${
+          showMobilePreview ? 'flex' : 'hidden lg:flex'
+        } p-4 lg:p-8`}>
           <div className="w-full max-w-full h-full flex items-center justify-center">
             <motion.div
               layout
@@ -556,7 +632,7 @@ function BuilderContent() {
                             `}
             >
               <div className="w-full h-full overflow-hidden rounded-2xl">
-                <IFramePreview>
+                <IFramePreview ref={previewRef}>
                   {renderTemplate(selectedTemplateId, portfolioData)}
                 </IFramePreview>
               </div>
