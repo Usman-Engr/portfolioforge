@@ -351,7 +351,7 @@ export default function DashboardPage() {
                 <PortfolioCard
                   key={portfolio.id}
                   portfolio={portfolio}
-                  onEdit={() => router.push(`/builder?id=${portfolio.id}`)}
+                  onEdit={() => router.push(`/builder-new?id=${portfolio.id}`)}
                   onPreview={() => router.push(`/portfolio/${portfolio.id}/preview`)}
                   onDelete={() => handleDelete(portfolio)}
                   onTogglePublish={() => handleTogglePublish(portfolio)}
@@ -432,7 +432,7 @@ export default function DashboardPage() {
         message="This action cannot be undone."
       />
 
-      {loading && <LoadingOverlay />}
+      {loading && <LoadingOverlay isVisible={true} />}
     </div>
   );
 }

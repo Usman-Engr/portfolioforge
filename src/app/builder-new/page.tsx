@@ -25,6 +25,7 @@ import {
   Settings,
   ChevronLeft,
   X,
+  CheckCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -54,6 +55,7 @@ type BuilderSection =
   | "social";
 
 import { Suspense } from "react";
+import { toast } from "sonner";
 
 function BuilderContent() {
   const router = useRouter();
@@ -82,6 +84,11 @@ function BuilderContent() {
   const [portfolioId, setPortfolioId] = useState<string | undefined>();
   const [selectedTemplateId, setSelectedTemplateId] =
     useState<string>("minimal-pro");
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+
+  // Derived save status
+  const saveStatus = lastSaved ? "saved" : "unsaved";
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -128,7 +135,52 @@ function BuilderContent() {
     }
   }, [searchParams, session, status]);
 
+  const handleSaveChanges = async () => {
+    if (!session) {
+      toast.error("You must be logged in to save changes");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const method = portfolioId ? "PUT" : "POST";
+      const url = portfolioId
+        ? `/api/portfolios/${portfolioId}`
+        : "/api/portfolios";
+
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: currentSlug || "draft",
+          data: portfolioData,
+          templateId: selectedTemplateId,
+          isPublished: portfolioId ? undefined : false,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Failed to save" }));
+        throw new Error(errorData.error || "Failed to save changes");
+      }
+
+      const saved = await response.json();
+      if (!portfolioId) setPortfolioId(saved.id);
+
+      setLastSaved(new Date());
+      toast.success("Changes saved successfully!", {
+        description: "Your portfolio has been updated.",
+      });
+    } catch (error: any) {
+      console.error("Save error:", error);
+      toast.error(error.message || "Failed to save changes. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleSave = useCallback(async () => {
+    // This is for auto-save - silent save without alert
     if (!session) return;
 
     try {
@@ -152,20 +204,12 @@ function BuilderContent() {
 
       const saved = await response.json();
       if (!portfolioId) setPortfolioId(saved.id);
+      setLastSaved(new Date());
     } catch (error) {
-      console.error("Save error:", error);
+      console.error("Auto-save error:", error);
       throw error;
     }
   }, [session, portfolioData, portfolioId, currentSlug, selectedTemplateId]);
-
-  const { saveStatus, isOnline, markAsChanged, saveNow } = useAutoSave({
-    onSave: handleSave,
-    delay: 30000,
-  });
-
-  useEffect(() => {
-    markAsChanged();
-  }, [portfolioData, markAsChanged]);
 
   const handlePublish = async (slug: string) => {
     if (!session) return;
@@ -273,24 +317,74 @@ function BuilderContent() {
           />
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 md:gap-4">
+          {/* Save Status Indicator - Desktop */}
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/5">
+            <div className={`w-2 h-2 rounded-full ${
+              saveStatus === "saved" || lastSaved
+                ? "bg-green-500"
+                : "bg-amber-500 animate-pulse"
+            }`} />
+            <span className="text-xs font-medium text-gray-300 hidden xl:inline">
+              {saveStatus === "saved" || lastSaved
+                ? `Saved ${lastSaved ? `at ${lastSaved.toLocaleTimeString()}` : ""}`
+                : "Saving..."}
+            </span>
+          </div>
+
+          {/* Mobile Save Status */}
+          <div className="flex lg:hidden items-center gap-1.5 px-2 py-1 bg-white/5 rounded-full border border-white/5">
+            <div className={`w-1.5 h-1.5 rounded-full ${
+              saveStatus === "saved" || lastSaved
+                ? "bg-green-500"
+                : "bg-amber-500 animate-pulse"
+            }`} />
+          </div>
+
           <button
             onClick={() => setShowTemplateSelector(true)}
-            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-xs font-black uppercase tracking-widest"
+            className="hidden md:flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-xs font-black uppercase tracking-widest"
           >
             <Palette className="w-4 h-4" />
             <span>Switch Base</span>
           </button>
 
-          <div className="h-8 w-px bg-white/10" />
+          <div className="hidden md:block h-8 w-px bg-white/10" />
 
+          {/* Save Changes Button - Desktop */}
+          <button
+            onClick={handleSaveChanges}
+            disabled={isSaving}
+            className="hidden md:flex group relative items-center gap-2 px-5 py-2.5 bg-gray-700 text-white rounded-full font-black text-xs uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin relative z-10" />
+                <span className="relative z-10 text-xs">Saving...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-3.5 h-3.5 relative z-10" />
+                <span className="relative z-10 text-xs">Save Changes</span>
+              </>
+            )}
+          </button>
+
+          {/* Deploy Site Button - Desktop */}
           <button
             onClick={() => setShowPublishModal(true)}
-            className="group relative flex items-center gap-3 px-8 py-3 bg-white text-black rounded-full font-black text-xs uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)] overflow-hidden"
+            className="hidden md:flex group relative items-center gap-2 px-5 py-2.5 bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-full font-black text-xs uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-lg hover:shadow-blue-500/25 overflow-hidden"
           >
-            <div className="absolute inset-0 bg-linear-to-r from-blue-400/20 to-purple-400/20 -translate-x-full group-hover:translate-x-0 transition-transform duration-700" />
-            <Rocket className="w-4 h-4 fill-current relative z-10" />
-            <span className="relative z-10">Deploy Site</span>
+            <Rocket className="w-3.5 h-3.5 fill-current relative z-10" />
+            <span className="relative z-10 text-xs">Deploy Site</span>
+          </button>
+
+          {/* Mobile Actions Button */}
+          <button
+            onClick={() => setShowPublishModal(true)}
+            className="md:hidden flex items-center justify-center w-10 h-10 bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-full font-black shadow-lg"
+          >
+            <Rocket className="w-4 h-4" />
           </button>
         </div>
       </header>
