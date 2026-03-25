@@ -370,21 +370,38 @@ function BuilderContent() {
             )}
           </button>
 
-          {/* Deploy Site Button - Desktop */}
-          <button
-            onClick={() => setShowPublishModal(true)}
-            className="hidden md:flex group relative items-center gap-2 px-5 py-2.5 bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-full font-black text-xs uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-lg hover:shadow-blue-500/25 overflow-hidden"
-          >
-            <Rocket className="w-3.5 h-3.5 fill-current relative z-10" />
-            <span className="relative z-10 text-xs">Deploy Site</span>
-          </button>
+          {/* Deploy Site Button - Desktop - Only for NEW portfolios */}
+          {!portfolioId && (
+            <button
+              onClick={() => setShowPublishModal(true)}
+              className="hidden md:flex group relative items-center gap-2 px-5 py-2.5 bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-full font-black text-xs uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-lg hover:shadow-blue-500/25 overflow-hidden"
+            >
+              <Rocket className="w-3.5 h-3.5 fill-current relative z-10" />
+              <span className="relative z-10 text-xs">Deploy Site</span>
+            </button>
+          )}
 
-          {/* Mobile Actions Button */}
+          {/* Mobile Deploy Button - Only for NEW portfolios */}
+          {!portfolioId && (
+            <button
+              onClick={() => setShowPublishModal(true)}
+              className="md:hidden flex items-center justify-center w-10 h-10 bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-full font-black shadow-lg"
+            >
+              <Rocket className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Mobile Save Button */}
           <button
-            onClick={() => setShowPublishModal(true)}
-            className="md:hidden flex items-center justify-center w-10 h-10 bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-full font-black shadow-lg"
+            onClick={handleSaveChanges}
+            disabled={isSaving}
+            className="md:hidden flex items-center justify-center w-10 h-10 bg-gray-700 text-white rounded-full shadow-lg disabled:opacity-50"
           >
-            <Rocket className="w-4 h-4" />
+            {isSaving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
           </button>
         </div>
       </header>
