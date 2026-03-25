@@ -24,7 +24,7 @@ export default function CreativeAccent({ data }: Props) {
 
   const MainSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
     <div style={{ marginBottom: "22px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+      <div style={{ display: "block", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
         <div style={{ width: "18px", height: "2px", backgroundColor: accent, borderRadius: "1px", flexShrink: 0 }} />
         <h2 style={{ fontSize: "11px", fontWeight: 800, letterSpacing: "2.5px", textTransform: "uppercase", color: accent, margin: 0 }}>{title}</h2>
       </div>
@@ -38,12 +38,12 @@ export default function CreativeAccent({ data }: Props) {
       style={{
         fontFamily: "'Arial', 'Helvetica', sans-serif",
         width: "210mm",
-        minHeight: "297mm",
+        minHeight: "auto",
         backgroundColor: "#ffffff",
         color: "#1a1a1a",
         margin: "0 auto",
-        display: "flex",
-        flexDirection: "column",
+        display: "block",
+        
         boxSizing: "border-box",
         wordBreak: "break-word",
         WebkitPrintColorAdjust: "exact",
@@ -67,7 +67,7 @@ export default function CreativeAccent({ data }: Props) {
       </div>
 
       {/* Contact Strip */}
-      <div style={{ backgroundColor: "#1f1334", padding: "8px 32px", display: "flex", justifyContent: "center", flexWrap: "wrap", gap: "20px" }}>
+      <div style={{ backgroundColor: "#1f1334", padding: "8px 32px", display: "block", justifyContent: "center", flexWrap: "wrap", gap: "20px" }}>
         {personal.email && <span style={{ fontSize: "10.5px", color: "rgba(255,255,255,0.75)" }}>✉ {personal.email}</span>}
         {personal.phone && <span style={{ fontSize: "10.5px", color: "rgba(255,255,255,0.75)" }}>✆ {personal.phone}</span>}
         {personal.location && <span style={{ fontSize: "10.5px", color: "rgba(255,255,255,0.75)" }}>⊙ {personal.location}</span>}
@@ -75,7 +75,7 @@ export default function CreativeAccent({ data }: Props) {
       </div>
 
       {/* Body: Sidebar + Main */}
-      <div style={{ display: "flex", flex: 1 }}>
+      <div style={{ display: "block", flex: 1 }}>
         {/* Sidebar */}
         <div style={{ width: "36%", backgroundColor: "#2d1b69", padding: "28px 22px", color: "#fff" }}>
           {/* Skills */}
@@ -84,7 +84,7 @@ export default function CreativeAccent({ data }: Props) {
               {skills.filter((g) => g.skills.length > 0).map((group, i) => (
                 <div key={i} style={{ marginBottom: "12px" }}>
                   <p style={{ fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.5)", margin: "0 0 6px", textTransform: "uppercase", letterSpacing: "0.8px" }}>{group.category}</p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                  <div style={{ display: "block", flexWrap: "wrap", gap: "4px" }}>
                     {group.skills.map((skill, j) => (
                       <span key={j} style={{ fontSize: "10px", padding: "3px 9px", backgroundColor: "rgba(255,255,255,0.1)", borderRadius: "100px", color: "rgba(255,255,255,0.9)", border: "1px solid rgba(255,255,255,0.15)" }}>
                         {skill}
@@ -114,7 +114,7 @@ export default function CreativeAccent({ data }: Props) {
           {languages.length > 0 && (
             <SideSection title="Languages">
               {languages.map((lang, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+                <div key={i} style={{ display: "block", justifyContent: "space-between", marginBottom: "6px" }}>
                   <span style={{ fontSize: "11px", color: "#fff" }}>{lang.language}</span>
                   <span style={{ fontSize: "9.5px", color: "rgba(255,255,255,0.45)" }}>{lang.proficiency}</span>
                 </div>
@@ -149,7 +149,7 @@ export default function CreativeAccent({ data }: Props) {
             <MainSection title="Experience">
               {workExperience.map((job, i) => (
                 <div key={i} style={{ marginBottom: "16px", paddingLeft: "12px", borderLeft: `2px solid ${accentLight}` }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div style={{ display: "block", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div>
                       <h3 style={{ fontSize: "13px", fontWeight: 700, margin: "0 0 1px", color: "#111827" }}>{job.position}</h3>
                       <p style={{ fontSize: "12px", color: accent, margin: "0 0 5px", fontWeight: 600 }}>{job.company}{job.location ? ` · ${job.location}` : ""}</p>

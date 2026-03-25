@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
@@ -25,6 +25,8 @@ import {
   Settings,
   ChevronLeft,
   X,
+  CheckCircle,
+  Edit,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -54,6 +56,7 @@ type BuilderSection =
   | "social";
 
 import { Suspense } from "react";
+import { toast } from "sonner";
 
 function BuilderContent() {
   const router = useRouter();
@@ -82,6 +85,12 @@ function BuilderContent() {
   const [portfolioId, setPortfolioId] = useState<string | undefined>();
   const [selectedTemplateId, setSelectedTemplateId] =
     useState<string>("minimal-pro");
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
+
+  // Derived save status
+  const saveStatus = lastSaved ? "saved" : "unsaved";
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -128,7 +137,91 @@ function BuilderContent() {
     }
   }, [searchParams, session, status]);
 
+  // Ref for preview iframe communication
+  const previewRef = useRef<HTMLIFrameElement>(null);
+
+  // Scroll to section in preview when activeSection changes
+  useEffect(() => {
+    if (!showMobilePreview) return; // Only scroll on mobile when preview is visible
+
+    // Map builder sections to template element IDs
+    const sectionElementMap: Record<string, string> = {
+      personal: "#about, #hero, #personal",
+      experience: "#experience",
+      skills: "#skills",
+      projects: "#projects",
+      education: "#education",
+      contact: "#contact, #footer",
+      social: "#contact, #social",
+    };
+
+    const targetSelector = sectionElementMap[activeSection];
+    if (!targetSelector) return;
+
+    // Send scroll message to iframe
+    const iframe = previewRef.current;
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.postMessage(
+        {
+          type: "scrollToSection",
+          selector: targetSelector,
+        },
+        "*"
+      );
+    }
+  }, [activeSection, showMobilePreview]);
+
+  const handleSaveChanges = async () => {
+    if (!session) {
+      toast.error("You must be logged in to save changes");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const method = portfolioId ? "PUT" : "POST";
+      const url = portfolioId
+        ? `/api/portfolios/${portfolioId}`
+        : "/api/portfolios";
+
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: currentSlug || "draft",
+          data: portfolioData,
+          templateId: selectedTemplateId,
+          isPublished: portfolioId ? undefined : false,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Failed to save" }));
+        throw new Error(errorData.error || "Failed to save changes");
+      }
+
+      const saved = await response.json();
+      if (!portfolioId) setPortfolioId(saved.id);
+
+      setLastSaved(new Date());
+      toast.success("Changes saved successfully!", {
+        description: "Your portfolio has been updated.",
+      });
+
+      // Redirect to dashboard after successful save
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1000);
+    } catch (error: any) {
+      console.error("Save error:", error);
+      toast.error(error.message || "Failed to save changes. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleSave = useCallback(async () => {
+    // This is for auto-save - silent save without alert
     if (!session) return;
 
     try {
@@ -152,20 +245,12 @@ function BuilderContent() {
 
       const saved = await response.json();
       if (!portfolioId) setPortfolioId(saved.id);
+      setLastSaved(new Date());
     } catch (error) {
-      console.error("Save error:", error);
+      console.error("Auto-save error:", error);
       throw error;
     }
   }, [session, portfolioData, portfolioId, currentSlug, selectedTemplateId]);
-
-  const { saveStatus, isOnline, markAsChanged, saveNow } = useAutoSave({
-    onSave: handleSave,
-    delay: 30000,
-  });
-
-  useEffect(() => {
-    markAsChanged();
-  }, [portfolioData, markAsChanged]);
 
   const handlePublish = async (slug: string) => {
     if (!session) return;
@@ -213,20 +298,20 @@ function BuilderContent() {
   return (
     <div className="h-screen flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden text-slate-900 dark:text-slate-100">
       {/* Top Bar - Premium Studio Header */}
-      <header className="h-20 border-b border-white/5 bg-black/60 backdrop-blur-2xl px-10 flex items-center justify-between z-100">
-        <div className="flex items-center gap-10">
+      <header className="h-16 md:h-20 border-b border-white/5 bg-black/60 backdrop-blur-2xl px-4 md:px-10 flex items-center justify-between z-100 flex-shrink-0">
+        <div className="flex items-center gap-4 md:gap-10">
           <Link href="/dashboard" className="group">
-            <div className="flex items-center gap-3 text-gray-400 group-hover:text-white transition-colors">
-              <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-              <span className="text-xs font-black uppercase tracking-widest">
+            <div className="flex items-center gap-2 md:gap-3 text-gray-400 group-hover:text-white transition-colors">
+              <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 group-hover:-translate-x-1 transition-transform" />
+              <span className="hidden sm:block text-xs font-black uppercase tracking-widest">
                 Studio Workspace
               </span>
             </div>
           </Link>
 
-          <div className="h-8 w-px bg-white/5" />
+          <div className="hidden sm:block h-8 w-px bg-white/5" />
 
-          <div className="flex flex-col">
+          <div className="hidden sm:flex flex-col">
             <div className="flex items-center gap-3">
               <h1 className="text-xl font-black tracking-tight text-white uppercase italic">
                 {portfolioData.personal.name || "UNNAMED CREATION"}
@@ -273,32 +358,115 @@ function BuilderContent() {
           />
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2 md:gap-4">
+          {/* Save Status Indicator - Desktop */}
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/5">
+            <div className={`w-2 h-2 rounded-full ${
+              saveStatus === "saved" || lastSaved
+                ? "bg-green-500"
+                : "bg-amber-500 animate-pulse"
+            }`} />
+            <span className="text-xs font-medium text-gray-300 hidden xl:inline">
+              {saveStatus === "saved" || lastSaved
+                ? `Saved ${lastSaved ? `at ${lastSaved.toLocaleTimeString()}` : ""}`
+                : "Saving..."}
+            </span>
+          </div>
+
+          {/* Mobile Toggle Preview/Edit Button */}
+          <button
+            onClick={() => setShowMobilePreview(!showMobilePreview)}
+            className="md:hidden flex items-center gap-1.5 px-3 py-2 bg-blue-600 border border-blue-500 rounded-full text-white text-[10px] font-black uppercase hover:bg-blue-700 transition-colors"
+          >
+            {showMobilePreview ? (
+              <>
+                <Edit className="w-3.5 h-3.5" />
+                <span>Edit</span>
+              </>
+            ) : (
+              <>
+                <Eye className="w-3.5 h-3.5" />
+                <span>Preview</span>
+              </>
+            )}
+          </button>
+
           <button
             onClick={() => setShowTemplateSelector(true)}
-            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-xs font-black uppercase tracking-widest"
+            className="hidden md:flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-xs font-black uppercase tracking-widest"
           >
             <Palette className="w-4 h-4" />
             <span>Switch Base</span>
           </button>
 
-          <div className="h-8 w-px bg-white/10" />
+          <div className="hidden md:block h-8 w-px bg-white/10" />
 
-          <button
-            onClick={() => setShowPublishModal(true)}
-            className="group relative flex items-center gap-3 px-8 py-3 bg-white text-black rounded-full font-black text-xs uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)] overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-linear-to-r from-blue-400/20 to-purple-400/20 -translate-x-full group-hover:translate-x-0 transition-transform duration-700" />
-            <Rocket className="w-4 h-4 fill-current relative z-10" />
-            <span className="relative z-10">Deploy Site</span>
-          </button>
+          {/* Save Changes Button - Desktop - Only for EDITING portfolios */}
+          {portfolioId && (
+            <button
+              onClick={handleSaveChanges}
+              disabled={isSaving}
+              className="hidden md:flex group relative items-center gap-2 px-5 py-2.5 bg-gray-700 text-white rounded-full font-black text-xs uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin relative z-10" />
+                  <span className="relative z-10 text-xs">Saving...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-3.5 h-3.5 relative z-10" />
+                  <span className="relative z-10 text-xs">Save Changes</span>
+                </>
+              )}
+            </button>
+          )}
+
+          {/* Deploy Site Button - Desktop - Only for NEW portfolios */}
+          {!portfolioId && (
+            <button
+              onClick={() => setShowPublishModal(true)}
+              className="hidden md:flex group relative items-center gap-2 px-5 py-2.5 bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-full font-black text-xs uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-lg hover:shadow-blue-500/25 overflow-hidden"
+            >
+              <Rocket className="w-3.5 h-3.5 fill-current relative z-10" />
+              <span className="relative z-10 text-xs">Deploy Site</span>
+            </button>
+          )}
+
+          {/* Mobile Action Buttons */}
+          <div className="md:hidden flex items-center gap-2">
+            {/* Mobile Deploy Button - Only for NEW portfolios */}
+            {!portfolioId && (
+              <button
+                onClick={() => setShowPublishModal(true)}
+                className="flex items-center justify-center w-10 h-10 bg-linear-to-r from-blue-600 to-purple-600 text-white rounded-full font-black shadow-lg hover:scale-105 transition-transform"
+              >
+                <Rocket className="w-4 h-4" />
+              </button>
+            )}
+
+            {/* Mobile Save Button - Only for EDITING portfolios */}
+            {portfolioId && (
+              <button
+                onClick={handleSaveChanges}
+                disabled={isSaving}
+                className="flex items-center justify-center w-10 h-10 bg-gray-700 text-white rounded-full shadow-lg hover:scale-105 transition-transform disabled:opacity-50"
+              >
+                {isSaving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
       {/* Main Studio Area */}
       <main className="flex-1 flex overflow-hidden">
-        {/* Navigation Sidebar */}
-        <nav className="w-24 border-r border-white/5 bg-[#0a0a0a] flex flex-col items-center py-10 gap-6">
+        {/* Navigation Sidebar - Hidden on mobile, visible on desktop */}
+        <nav className={`w-24 border-r border-white/5 bg-[#0a0a0a] flex flex-col items-center py-10 gap-6 hidden lg:flex`}>
           {sections.map((section) => (
             <button
               key={section.id}
@@ -329,8 +497,10 @@ function BuilderContent() {
         </nav>
 
         {/* Form Editor Panel */}
-        <aside className="w-[450px] border-r border-white/5 bg-[#050505] overflow-y-auto custom-scrollbar">
-          <div className="p-10">
+        <aside className={`w-full lg:w-[450px] border-r border-white/5 bg-[#050505] overflow-y-auto custom-scrollbar ${
+          showMobilePreview ? 'hidden' : 'block lg:block'
+        }`}>
+          <div className="p-6 pb-24 lg:p-10 lg:pb-10">
             <div className="mb-10">
               <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">
                 {sections.find((s) => s.id === activeSection)?.label}
@@ -415,8 +585,34 @@ function BuilderContent() {
           </div>
         </aside>
 
-        {/* Live Preview Display */}
-        <section className="flex-1 bg-slate-100 dark:bg-slate-950 flex flex-col items-center justify-center p-8 overflow-hidden">
+        {/* Mobile Section Navigation - Only shows on mobile when editing */}
+        <nav className={`lg:hidden fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-xl border-t border-white/10 z-50 ${
+          showMobilePreview ? 'hidden' : 'block'
+        }`}>
+          <div className="flex items-center justify-around py-3 px-2 overflow-x-auto">
+            {sections.map((section) => (
+              <button
+                key={section.id}
+                onClick={() => setActiveSection(section.id as BuilderSection)}
+                className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all min-w-fit ${
+                  activeSection === section.id
+                    ? "bg-white text-black"
+                    : "text-gray-500 hover:text-white"
+                }`}
+              >
+                <section.icon className="w-4 h-4" />
+                <span className="text-[8px] font-black uppercase tracking-wider">
+                  {section.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        </nav>
+
+        {/* Live Preview Display - Hidden on mobile when editing, shown when preview mode is active */}
+        <section className={`flex-1 bg-slate-100 dark:bg-slate-950 flex flex-col items-center justify-center overflow-hidden ${
+          showMobilePreview ? 'flex' : 'hidden lg:flex'
+        } p-4 lg:p-8`}>
           <div className="w-full max-w-full h-full flex items-center justify-center">
             <motion.div
               layout
@@ -440,7 +636,7 @@ function BuilderContent() {
                             `}
             >
               <div className="w-full h-full overflow-hidden rounded-2xl">
-                <IFramePreview>
+                <IFramePreview ref={previewRef}>
                   {renderTemplate(selectedTemplateId, portfolioData)}
                 </IFramePreview>
               </div>

@@ -48,7 +48,7 @@ export default function TemplatesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white pt-32 pb-24 px-4 sm:px-6 lg:px-8 selection:bg-purple-500/30">
+    <div className="min-h-screen bg-[#050505] text-white pb-12 px-4 sm:px-6 lg:px-8 selection:bg-purple-500/30">
       {/* Background elements */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-20%] left-[-10%] w-full h-full bg-blue-600/5 rounded-full blur-[150px]" />

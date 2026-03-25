@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, ReactNode } from "react";
+import { useEffect, useRef, useState, ReactNode, forwardRef } from "react";
 import { createPortal } from "react-dom";
 
 interface IFramePreviewProps {
@@ -8,9 +8,19 @@ interface IFramePreviewProps {
   className?: string;
 }
 
-export default function IFramePreview({ children, className = "w-full h-full border-0" }: IFramePreviewProps) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+const IFramePreview = forwardRef<HTMLIFrameElement, IFramePreviewProps>(({ children, className = "w-full h-full border-0" }, externalRef) => {
+  const internalRef = useRef<HTMLIFrameElement>(null);
+  const iframeRef = internalRef;
   const [contentRef, setContentRef] = useState<HTMLElement | null>(null);
+
+  // Expose the iframe ref to parent
+  useEffect(() => {
+    if (typeof externalRef === 'function') {
+      externalRef(internalRef.current);
+    } else if (externalRef) {
+      (externalRef as React.MutableRefObject<HTMLIFrameElement | null>).current = internalRef.current;
+    }
+  }, [externalRef]);
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -68,13 +78,40 @@ export default function IFramePreview({ children, className = "w-full h-full bor
     };
   }, []);
 
+  // Handle scroll-to-section messages from parent
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === "scrollToSection") {
+        const { selector } = event.data;
+        const doc = iframe.contentDocument;
+        if (!doc) return;
+
+        // Try to find element using the selector
+        const element = doc.querySelector(selector);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
   return (
     <iframe
-      ref={iframeRef}
+      ref={internalRef}
       className={className}
       title="Portfolio Preview"
     >
       {contentRef && createPortal(children, contentRef)}
     </iframe>
   );
-}
+});
+
+IFramePreview.displayName = "IFramePreview";
+
+export default IFramePreview;

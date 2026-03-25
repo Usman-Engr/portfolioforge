@@ -48,6 +48,9 @@ function ResumeRenderContent({ templateId }: { templateId: string }) {
         await document.fonts.ready;
       }
 
+      // Additional time for custom fonts to fully render
+      await new Promise<void>((resolve) => setTimeout(resolve, 500));
+
       // Two rAF cycles to ensure the last paint is committed
       await new Promise<void>((resolve) =>
         requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
@@ -67,23 +70,11 @@ function ResumeRenderContent({ templateId }: { templateId: string }) {
   // ── Error state ────────────────────────────────────────────────────────────
   if (error) {
     return (
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-          background: "#fff",
-          color: "#ef4444",
-          padding: "40px",
-          fontFamily: "Arial, sans-serif",
-        }}
-      >
-        <h1 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "16px" }}>
-          Render Error
-        </h1>
-        <p>{error}</p>
+      <div className="flex items-center justify-center min-h-screen bg-white text-red-600 p-10 font-sans">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Render Error</h1>
+          <p className="text-gray-700">{error}</p>
+        </div>
       </div>
     );
   }
@@ -91,88 +82,190 @@ function ResumeRenderContent({ templateId }: { templateId: string }) {
   // ── Loading state ─────────────────────────────────────────────────────────
   if (!data) {
     return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-          background: "#fff",
-        }}
-      >
-        <Loader2
-          style={{ width: "40px", height: "40px", color: "#3b82f6" }}
-          className="animate-spin"
-        />
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
       </div>
     );
   }
 
-  // ── Render the resume at NATIVE A4 dimensions (no CSS transforms) ─────────
+  // ── Render the resume at NATIVE A4 dimensions with PRODUCTION-READY CSS ───────
   return (
     <>
-      {/*
-       * CRITICAL PRINT CSS
-       * ------------------
-       * We render the resume template components at exactly 210mm × 297mm.
-       * No scaling transforms. The Puppeteer PDF engine gets pixel-perfect
-       * vector output directly from the browser's Chrome print engine.
-       *
-       * page-break-inside: avoid is set on section wrappers inside each
-       * template component, so long resumes paginate cleanly.
-       */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Merriweather:wght@400;700&family=Roboto:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Merriweather:wght@300;400;700&family=Roboto+Slab:wght@400;500;700&family=Source+Sans+Pro:wght@400;600;700&family=Open+Sans:wght@400;600;700&display=swap');
 
-        @page {
-          size: A4;
-          margin: 0;
-        }
-
+        /* ─────────────────────────────────────────────────────────────────
+           CRITICAL: RESET ALL DEFAULT BROWSER STYLES
+           ───────────────────────────────────────────────────────────────── */
         *, *::before, *::after {
           box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+        }
+
+        /* Ensure no default margins on common elements */
+        h1, h2, h3, h4, h5, h6, p, div, span, section {
+          margin: 0;
+          padding: 0;
+        }
+
+        html {
+          font-size: 16px; /* Base font size for rem units */
+          width: 210mm;
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
         }
 
-        html, body {
+        body {
           margin: 0 !important;
           padding: 0 !important;
           background: #ffffff !important;
+          width: 210mm !important;
+          min-height: 297mm;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+
+        /* ─────────────────────────────────────────────────────────────────
+           PAGE & MARGIN CONFIGURATION
+           ───────────────────────────────────────────────────────────────── */
+        @page {
+          size: A4;
+          margin: 0; /* No margins - template handles padding */
+        }
+
+        /* ─────────────────────────────────────────────────────────────────
+           PREVENT EXTRA BLANK PAGES
+           ───────────────────────────────────────────────────────────────── */
+        .export-canvas-root {
+          /* NO minHeight - prevents forced page breaks */
           width: 210mm;
-          /* Let height be driven by content for multi-page */
+          height: auto;
+          /* Critical: display block not inline-block to prevent white space */
+          display: block;
+          background: #ffffff;
+          position: relative;
+          margin: 0;
+          padding: 0;
+          /* Force block layout context but allow natural page breaks */
         }
 
-        /* Remove any interactive UI chrome that may bleed in */
-        .no-print {
-          display: none !important;
-        }
-
-        /* Section page-break helpers (templates use these classes) */
+        /* ─────────────────────────────────────────────────────────────────
+           PREVENT UNWANTED PAGE BREAKS
+           ───────────────────────────────────────────────────────────────── */
         .resume-section {
           page-break-inside: avoid;
+          orphans: 2;
+          widows: 2;
         }
 
         .resume-entry {
           page-break-inside: avoid;
+          orphans: 3;
+          widows: 3;
         }
 
+        .no-break {
+          page-break-inside: avoid;
+        }
+
+        /* Force page break before major sections if needed */
+        .page-break-before {
+          page-break-before: always;
+        }
+
+        .page-break-after {
+          page-break-after: always;
+        }
+
+        /* Hide elements during export */
+        .no-print {
+          display: none !important;
+        }
+
+        /* ─────────────────────────────────────────────────────────────────
+           PRINT-SPECIFIC OPTIMIZATIONS
+           ───────────────────────────────────────────────────────────────── */
         @media print {
+          /* Ensure proper color reproduction */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          /* Remove any shadows or filters that don't print well */
+          * {
+            box-shadow: none !important;
+            text-shadow: none !important;
+            filter: none !important;
+          }
+
+          /* Background colors should print */
+          * {
+            background-color: initial !important;
+            color-adjust: exact !important;
+          }
+
           html, body {
             width: 210mm !important;
             margin: 0 !important;
             padding: 0 !important;
             background: #ffffff !important;
+            min-height: 297mm !important;
           }
+
+          .export-canvas-root {
+            display: block !important;
+            width: 210mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          /* Ensure links don't show URLs in print */
+          a {
+            text-decoration: none;
+            color: inherit !important;
+          }
+
+          a[href]::after {
+            content: none !important;
+          }
+
+          /* Remove any interactive elements */
+          button, .no-print {
+            display: none !important;
+          }
+        }
+
+        /* ─────────────────────────────────────────────────────────────────
+           FONT OPTIMIZATIONS FOR PDF
+           ───────────────────────────────────────────────────────────────── */
+        /* Preload critical fonts */
+        @font-face {
+          font-family: 'Georgia';
+          src: local('Georgia'), local('Georgia Regular');
+          font-display: swap;
+        }
+
+        @font-face {
+          font-family: 'Times New Roman';
+          src: local('Times New Roman');
+          font-display: swap;
+        }
+
+        @font-face {
+          font-family: Arial;
+          src: local('Arial');
+          font-display: swap;
         }
       `}</style>
 
       {/*
-       * The resume template component is responsible for its own dimensions.
-       * All templates have: width: "210mm", minHeight: "297mm" as root styles.
-       * We simply render the component — Puppeteer's Chrome print engine
-       * will paginate correctly when content overflows the A4 height.
-       */}
+        The resume template component is rendered with:
+        - width: 210mm (A4 width)
+        - NO minHeight (prevents extra pages)
+        - Proper page-break-inside: avoid classes
+      */}
       <div className="export-canvas-root">
         {renderResumeTemplateForExport(templateId, data)}
       </div>
@@ -189,19 +282,8 @@ export default function ResumeRenderPage({ params }: PageProps) {
   return (
     <Suspense
       fallback={
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            minHeight: "100vh",
-            background: "#fff",
-          }}
-        >
-          <Loader2
-            style={{ width: "40px", height: "40px", color: "#3b82f6" }}
-            className="animate-spin"
-          />
+        <div className="flex items-center justify-center min-h-screen bg-white">
+          <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
         </div>
       }
     >

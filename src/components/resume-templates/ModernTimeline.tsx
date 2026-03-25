@@ -15,7 +15,7 @@ export default function ModernTimeline({ data }: Props) {
   const accent = "#2563eb";
 
   const SectionTitle = ({ title }: { title: string }) => (
-    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
+    <div style={{ display: "block", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
       <div style={{ width: "3px", height: "20px", backgroundColor: accent, borderRadius: "2px", flexShrink: 0 }} />
       <h2 style={{ fontSize: "13px", fontWeight: 800, letterSpacing: "2.5px", textTransform: "uppercase", color: "#111", margin: 0, fontFamily: "Arial, sans-serif" }}>{title}</h2>
     </div>
@@ -27,7 +27,7 @@ export default function ModernTimeline({ data }: Props) {
       style={{
         fontFamily: "'Arial', 'Helvetica', sans-serif",
         width: "210mm",
-        minHeight: "297mm",
+        minHeight: "auto",
         backgroundColor: "#ffffff",
         color: "#1a1a1a",
         margin: "0 auto",
@@ -35,13 +35,13 @@ export default function ModernTimeline({ data }: Props) {
         wordBreak: "break-word",
         WebkitPrintColorAdjust: "exact",
         printColorAdjust: "exact",
-        display: "flex",
-        flexDirection: "column",
+        display: "block",
+        
       }}
     >
       {/* Top Header Bar */}
       <div style={{ padding: "36px 44px 30px", borderBottom: "2px solid #f3f4f6" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div style={{ display: "block", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
             <h1 style={{ fontSize: "30px", fontWeight: 800, margin: 0, color: "#111", letterSpacing: "-0.5px" }}>
               {personal.fullName || "Your Name"}
@@ -80,7 +80,7 @@ export default function ModernTimeline({ data }: Props) {
                 <div key={i} style={{ position: "relative", paddingLeft: "26px", marginBottom: "20px" }}>
                   {/* Timeline dot */}
                   <div style={{ position: "absolute", left: 0, top: "5px", width: "11px", height: "11px", borderRadius: "50%", backgroundColor: accent, border: "2px solid #fff", boxShadow: `0 0 0 2px ${accent}` }} />
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div style={{ display: "block", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div>
                       <h3 style={{ fontSize: "13px", fontWeight: 700, margin: 0, color: "#111" }}>{job.position}</h3>
                       <p style={{ fontSize: "12px", color: accent, margin: "2px 0", fontWeight: 600 }}>{job.company}{job.location ? ` · ${job.location}` : ""}</p>
@@ -106,7 +106,7 @@ export default function ModernTimeline({ data }: Props) {
         )}
 
         {/* Two-column lower section */}
-        <div style={{ display: "flex", gap: "32px" }}>
+        <div style={{ display: "block", gap: "32px" }}>
           {/* Left: Education */}
           <div style={{ flex: "1 1 50%" }}>
             {education.length > 0 && (
@@ -144,7 +144,7 @@ export default function ModernTimeline({ data }: Props) {
                 {skills.filter((g) => g.skills.length > 0).map((group, i) => (
                   <div key={i} style={{ marginBottom: "10px" }}>
                     <p style={{ fontSize: "10.5px", fontWeight: 700, color: "#888", margin: "0 0 5px", textTransform: "uppercase", letterSpacing: "0.8px" }}>{group.category}</p>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+                    <div style={{ display: "block", flexWrap: "wrap", gap: "5px" }}>
                       {group.skills.map((skill, j) => (
                         <span key={j} style={{ fontSize: "10.5px", padding: "3px 10px", borderRadius: "100px", backgroundColor: `${accent}15`, color: accent, fontWeight: 600, border: `1px solid ${accent}25` }}>
                           {skill}
@@ -160,7 +160,7 @@ export default function ModernTimeline({ data }: Props) {
               <section>
                 <SectionTitle title="Languages" />
                 {languages.map((lang, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                  <div key={i} style={{ display: "block", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
                     <span style={{ fontSize: "11.5px", color: "#333", fontWeight: 600 }}>{lang.language}</span>
                     <span style={{ fontSize: "10px", color: "#777", backgroundColor: "#f3f4f6", padding: "2px 8px", borderRadius: "100px" }}>{lang.proficiency}</span>
                   </div>

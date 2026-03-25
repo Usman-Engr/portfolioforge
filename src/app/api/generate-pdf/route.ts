@@ -1,52 +1,50 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTemplateById } from "@/lib/templates";
-import { getResumeTemplateById } from "@/lib/resume-templates";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/db/supabase-admin";
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
+// Constants for production PDF generation
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
+// A4 dimensions in pixels (at 96dpi for consistency)
+const A4_WIDTH_PX = 794;   // 210mm at 96dpi
+const A4_HEIGHT_PX = 1123; // 297mm at 96dpi
+
 const VIEWPORT = {
-  width: 794,   // Exact pixel-equivalent of 210mm at 96dpi
-  height: 1123, // Exact pixel-equivalent of 297mm at 96dpi
-  deviceScaleFactor: 2, // HiDPI for crisp text
+  width: A4_WIDTH_PX,
+  height: A4_HEIGHT_PX,
+  deviceScaleFactor: 1, // Use 1:1 for accurate print rendering
 } as const;
 
-const NAVIGATION_TIMEOUT_MS = 60_000;
-const RENDER_READY_TIMEOUT_MS = 30_000;
-const NETWORK_IDLE_TIMEOUT_MS = 15_000;
+const TIMEOUTS = {
+  NAVIGATION: 60000,
+  RENDER_READY: 30000,
+  NETWORK_IDLE: 15000,
+  FONT_LOAD: 5000,
+} as const;
 
 type GeneratePdfBody = {
   templateId: string;
   data: unknown;
 };
 
-// ---------------------------------------------------------------------------
-// Browser singleton — reuse across requests (critical for performance)
-// ---------------------------------------------------------------------------
-let browserInstance: import("puppeteer-core").Browser | null = null;
+// Browser instance reuse
+let browserInstance: any = null;
 
-async function getBrowser(): Promise<import("puppeteer-core").Browser> {
-  // If we have a live browser, return it
+async function getBrowser() {
   if (browserInstance) {
     try {
-      // Health-check: if this throws the browser crashed
       const pages = await browserInstance.pages();
-      if (pages !== undefined) {
-        return browserInstance;
-      }
+      if (pages) return browserInstance;
     } catch {
-      console.warn("[PDF] Browser instance unhealthy, relaunching...");
+      console.warn("[PDF] Browser unhealthy, relaunching...");
       browserInstance = null;
     }
   }
 
-  // Lazily import so Next.js doesn't attempt to bundle Chromium at build time
   const puppeteer = await import("puppeteer-core");
 
   if (IS_PRODUCTION) {
-    // @sparticuz/chromium types are incomplete — cast to access runtime properties
     const chromium = await import("@sparticuz/chromium") as any;
     const chromiumDefault = chromium.default ?? chromium;
     browserInstance = await puppeteer.default.launch({
@@ -56,28 +54,9 @@ async function getBrowser(): Promise<import("puppeteer-core").Browser> {
       headless: chromiumDefault.headless ?? true,
     });
   } else {
-    // Local development — use the system Chrome installation
-    // Adjust this path if Chrome is installed elsewhere on your machine
-    const possibleChromePaths = [
-      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-      "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
-      "/usr/bin/google-chrome",
-      "/usr/bin/chromium-browser",
-      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-    ];
-
-    // Use environment variable override if set
-    const chromePath =
-      process.env.CHROME_EXECUTABLE_PATH ||
-      possibleChromePaths.find((p) => {
-        try {
-          require("fs").accessSync(p);
-          return true;
-        } catch {
-          return false;
-        }
-      }) ||
-      possibleChromePaths[0];
+    // Development - local Chrome
+    const chromePath = process.env.CHROME_EXECUTABLE_PATH ||
+      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 
     browserInstance = await puppeteer.default.launch({
       args: [
@@ -85,7 +64,7 @@ async function getBrowser(): Promise<import("puppeteer-core").Browser> {
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
         "--disable-gpu",
-        "--font-render-hinting=none", // Ensures consistent font rendering
+        "--disable-features=VizDisplayCompositor",
       ],
       defaultViewport: VIEWPORT,
       executablePath: chromePath,
@@ -93,140 +72,133 @@ async function getBrowser(): Promise<import("puppeteer-core").Browser> {
     });
   }
 
-  // Clean up on process exit so we don't leave zombie Chromium processes
   browserInstance.on("disconnected", () => {
     browserInstance = null;
   });
 
-  console.log(`[PDF] Browser launched (${IS_PRODUCTION ? "prod" : "dev"})`);
+  console.log(`[PDF] Browser launched (${IS_PRODUCTION ? "production" : "development"})`);
   return browserInstance;
 }
 
-// ---------------------------------------------------------------------------
-// POST /api/generate-pdf
-// ---------------------------------------------------------------------------
-export async function POST(req: NextRequest) {
-  let page: import("puppeteer-core").Page | null = null;
+export async function POST(request: NextRequest) {
+  let page: any = null;
 
   try {
-    const body = (await req.json()) as GeneratePdfBody;
+    const body = (await request.json()) as GeneratePdfBody;
     const { templateId, data } = body;
 
-    // ── Input validation ──────────────────────────────────────────────────
-    if (!templateId || typeof templateId !== "string") {
+    // Validate inputs
+    if (!templateId || !data) {
       return NextResponse.json(
-        { error: "Missing or invalid templateId" },
+        { error: "Missing templateId or data" },
         { status: 400 }
       );
     }
 
-    if (!data) {
-      return NextResponse.json(
-        { error: "Missing resume/portfolio data" },
-        { status: 400 }
-      );
-    }
+    console.log(`[PDF] Generating resume: ${templateId}`);
 
-    const isResumeTemplate = templateId.startsWith("resume-");
-    const isValidTemplate = isResumeTemplate
-      ? Boolean(getResumeTemplateById(templateId))
-      : Boolean(getTemplateById(templateId));
-
-    if (!isValidTemplate) {
-      return NextResponse.json({ error: "Invalid templateId" }, { status: 400 });
-    }
-
-    // ── Build render URL ──────────────────────────────────────────────────
-    const protocol = req.headers.get("x-forwarded-proto") || "http";
-    const host = req.headers.get("host") || "localhost:3009";
+    // Build render URL
+    const protocol = request.headers.get("x-forwarded-proto") || "http";
+    const host = request.headers.get("host") || "localhost:3009";
     const baseUrl = `${protocol}://${host}`;
 
-    // Base64-encode JSON data to safely pass through URL query params
-    // (avoids special character encoding issues with complex data)
+    // Encode data for URL
     const encodedData = Buffer.from(JSON.stringify(data)).toString("base64");
+    const renderUrl = `${baseUrl}/export/resume/${templateId}?data=${encodeURIComponent(encodedData)}&pdf=1`;
 
-    // Resume templates use the dedicated high-fidelity route;
-    // portfolio templates continue to use the existing generic render route.
-    const renderPath = isResumeTemplate
-      ? `/export/resume/${templateId}`
-      : `/export/render/${templateId}`;
+    console.log(`[PDF] Render URL: ${renderUrl.substring(0, 100)}...`);
 
-    const renderUrl = `${baseUrl}${renderPath}?data=${encodeURIComponent(encodedData)}&pdf=1`;
-
-    console.log(`[PDF] Rendering: ${templateId} → ${renderUrl}`);
-
-    // ── Acquire browser page ──────────────────────────────────────────────
+    // Get browser and page
     const browser = await getBrowser();
     page = await browser.newPage();
 
-    // Use screen media so Tailwind's responsive classes apply correctly
-    // (the template CSS already handles @media print adjustments)
-    await page.emulateMediaType("screen");
+    // Set viewport to A4
     await page.setViewport(VIEWPORT);
 
-    // ── Navigate and wait for full render ─────────────────────────────────
+    // CRITICAL: Use screen media type for proper rendering
+    // Using "screen" instead of "print" to avoid print-specific styling issues
+    await page.emulateMediaType("screen");
+
+    // Navigate to render URL
+    console.log("[PDF] Navigating to render page...");
     await page.goto(renderUrl, {
-      waitUntil: ["networkidle0", "domcontentloaded", "load"],
-      timeout: NAVIGATION_TIMEOUT_MS,
+      waitUntil: ["domcontentloaded", "load"],
+      timeout: TIMEOUTS.NAVIGATION,
     });
 
-    // Wait for the resume root element to appear in the DOM
-    await page.waitForSelector(".export-canvas-root", {
-      timeout: RENDER_READY_TIMEOUT_MS,
-    });
-
-    // Wait for deterministic readiness signal:
-    // window.__PDF_READY__ is set by the render page AFTER fonts.ready + 2×rAF
-    await page.waitForFunction(
-      () => {
-        const pdfReady = (window as Window & { __PDF_READY__?: boolean })
-          .__PDF_READY__;
-        const fontsReady =
-          !("fonts" in document) ||
-          (document as Document & { fonts?: FontFaceSet }).fonts?.status ===
-            "loaded";
-        return Boolean(pdfReady && fontsReady);
-      },
-      { timeout: RENDER_READY_TIMEOUT_MS }
-    );
-
-    // One extra rAF to catch any late-applied styles (e.g. CSS custom properties)
-    await page.evaluate(
-      () =>
-        new Promise<void>((resolve) =>
-          requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
-        )
-    );
-
-    // Brief network idle check to ensure remote fonts / assets are done
+    // Wait for root element
+    console.log("[PDF] Waiting for content...");
     try {
-      await page.waitForNetworkIdle({
-        idleTime: 300,
-        timeout: NETWORK_IDLE_TIMEOUT_MS,
+      await page.waitForSelector(".export-canvas-root", {
+        timeout: TIMEOUTS.RENDER_READY,
       });
-    } catch {
-      // Non-fatal: network may have already settled; proceed to capture
-      console.warn("[PDF] Network idle timeout reached — proceeding anyway");
+    } catch (error) {
+      console.error("[PDF] Root element not found:", error);
+      throw new Error("Resume template not rendering properly");
     }
 
-    // ── Generate A4 PDF ───────────────────────────────────────────────────
+    // Wait for PDF ready signal (fonts loaded, etc.)
+    console.log("[PDF] Waiting for PDF ready signal...");
+    try {
+      await page.waitForFunction(
+        () => {
+          const win = window as any;
+          return (
+            win.__PDF_READY__ === true &&
+            (!("fonts" in document) ||
+              (document as any).fonts?.status === "loaded")
+          );
+        },
+        { timeout: TIMEOUTS.RENDER_READY }
+      );
+    } catch (error) {
+      console.warn("[PDF] PDF ready timeout, proceeding anyway:", error);
+      // Continue anyway - content might be ready enough
+    }
+
+    // Extra wait for any late-loading content
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Get page height for debugging
+    const dimensions = await page.evaluate(() => {
+      const root = document.querySelector(".export-canvas-root");
+      if (!root) return { width: 0, height: 0 };
+
+      const rect = root.getBoundingClientRect();
+      return {
+        width: rect.width,
+        height: rect.height,
+        scrollHeight: root.scrollHeight,
+      };
+    });
+
+    console.log("[PDF] Page dimensions:", dimensions);
+
+    // Generate PDF with PRODUCTION settings
+    console.log("[PDF] Generating PDF...");
     const pdfBuffer = await page.pdf({
       format: "A4",
-      printBackground: true,  // Ensures colored backgrounds are included
-      preferCSSPageSize: true, // Respects @page { size: A4; margin: 0 }
+      printBackground: true,
+      preferCSSPageSize: false, // Let PDF format control size, not CSS
       margin: {
-        top: "0px",
-        right: "0px",
-        bottom: "0px",
-        left: "0px",
+        top: "0mm",
+        right: "0mm",
+        bottom: "0mm",
+        left: "0mm",
       },
+      scale: 1, // 1:1 scale - no scaling
+      displayHeaderFooter: false, // No headers/footers
+      omitBackground: false,
     });
 
     await page.close();
     page = null;
 
-    // ── Derive filename ───────────────────────────────────────────────────
-    let fileName = `resume-${templateId}`;
+    // Log success
+    console.log(`[PDF] Generated successfully (${pdfBuffer.length} bytes)`);
+
+    // Generate filename
+    let filename = `resume-${templateId}`;
     try {
       const resumeData = data as { personal?: { fullName?: string } };
       if (resumeData?.personal?.fullName) {
@@ -234,38 +206,46 @@ export async function POST(req: NextRequest) {
           .replace(/[^a-zA-Z0-9\s-]/g, "")
           .replace(/\s+/g, "-")
           .toLowerCase();
-        fileName = `${safeName}-resume`;
+        filename = `${safeName}-resume`;
       }
     } catch {
-      // Fallback filename is fine
+      // Use default filename
     }
 
+    // Return PDF with proper headers
     return new NextResponse(Buffer.from(pdfBuffer), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${fileName}.pdf"`,
-        "Cache-Control": "no-store",
+        "Content-Disposition": `attachment; filename="${filename}.pdf"`,
+        "Content-Length": pdfBuffer.length.toString(),
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+        "Pragma": "no-cache",
       },
     });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error("[PDF] Generation failed:", message);
+
+  } catch (error: any) {
+    console.error("[PDF] Generation failed:", error);
+
+    // Clean up page on error
+    if (page) {
+      try {
+        await page.close();
+      } catch {}
+    }
 
     return NextResponse.json(
       {
         error: "Failed to generate PDF",
-        detail: IS_PRODUCTION ? undefined : message,
+        detail: IS_PRODUCTION ? undefined : error.message,
       },
       { status: 500 }
     );
   } finally {
-    // Always close the page (not the browser) so the instance can be reused
+    // Always close the page
     if (page) {
       try {
         await page.close();
-      } catch {
-        // Ignore close errors
-      }
+      } catch {}
     }
   }
 }

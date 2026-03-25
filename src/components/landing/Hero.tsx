@@ -21,7 +21,7 @@ export const Hero = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#050505] pt-16">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#050505]">
       {/* Cinematic Background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-blue-600/10 rounded-full blur-[120px] animate-pulse" />
@@ -72,7 +72,9 @@ export const Hero = () => {
                 className="h-16 px-10 rounded-2xl bg-white text-black hover:bg-gray-200 font-black text-lg transition-transform hover:scale-105 active:scale-95 flex items-center gap-3"
               >
                 <Zap className="w-5 h-5 fill-current" />
-                {status === "authenticated" ? "Go to Dashboard" : "Launch Your Studio"}
+                {status === "authenticated"
+                  ? "Go to Dashboard"
+                  : "Launch Your Studio"}
               </Button>
               <Link href="/templates">
                 <Button
@@ -92,7 +94,7 @@ export const Hero = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, delay: 0.4 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-20 max-w-4xl mx-auto"
+            className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto"
           >
             <Metric item="10k+" sub="Active Creators" />
             <Metric item="0.2s" sub="Load Speeds" />
