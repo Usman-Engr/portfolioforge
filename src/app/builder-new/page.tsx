@@ -462,7 +462,7 @@ function BuilderContent() {
       {/* Main Studio Area */}
       <main className="flex-1 flex overflow-hidden">
         {/* Navigation Sidebar - Hidden on mobile, visible on desktop */}
-        <nav className={`w-24 border-r border-white/5 bg-[#0a0a0a] flex-col items-center py-10 gap-6 hidden lg:flex`}>
+        <nav className={`w-24 border-r border-white/5 bg-[#0a0a0a] flex flex-col items-center py-10 gap-6 hidden lg:flex`}>
           {sections.map((section) => (
             <button
               key={section.id}

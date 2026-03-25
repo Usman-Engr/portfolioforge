@@ -16,10 +16,11 @@ export default function ConditionalNavbarWrapper({
 }: ConditionalNavbarWrapperProps) {
   const pathname = usePathname();
 
-  // Hide navbar on preview pages
+  // Hide navbar on preview pages and builder
   const hideNavbar =
     pathname?.includes("/preview") ||
     pathname?.includes("/templates/preview") ||
+    pathname?.includes("/builder") ||
     (pathname?.includes("/portfolio/") && pathname?.includes("/preview"));
 
   return (
