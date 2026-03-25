@@ -401,24 +401,26 @@ function BuilderContent() {
 
           <div className="hidden md:block h-8 w-px bg-white/10" />
 
-          {/* Save Changes Button - Desktop */}
-          <button
-            onClick={handleSaveChanges}
-            disabled={isSaving}
-            className="hidden md:flex group relative items-center gap-2 px-5 py-2.5 bg-gray-700 text-white rounded-full font-black text-xs uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin relative z-10" />
-                <span className="relative z-10 text-xs">Saving...</span>
-              </>
-            ) : (
-              <>
-                <Save className="w-3.5 h-3.5 relative z-10" />
-                <span className="relative z-10 text-xs">Save Changes</span>
-              </>
-            )}
-          </button>
+          {/* Save Changes Button - Desktop - Only for EDITING portfolios */}
+          {portfolioId && (
+            <button
+              onClick={handleSaveChanges}
+              disabled={isSaving}
+              className="hidden md:flex group relative items-center gap-2 px-5 py-2.5 bg-gray-700 text-white rounded-full font-black text-xs uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin relative z-10" />
+                  <span className="relative z-10 text-xs">Saving...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-3.5 h-3.5 relative z-10" />
+                  <span className="relative z-10 text-xs">Save Changes</span>
+                </>
+              )}
+            </button>
+          )}
 
           {/* Deploy Site Button - Desktop - Only for NEW portfolios */}
           {!portfolioId && (
@@ -443,18 +445,20 @@ function BuilderContent() {
               </button>
             )}
 
-            {/* Mobile Save Button */}
-            <button
-              onClick={handleSaveChanges}
-              disabled={isSaving}
-              className="flex items-center justify-center w-10 h-10 bg-gray-700 text-white rounded-full shadow-lg hover:scale-105 transition-transform disabled:opacity-50"
-            >
-              {isSaving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-            </button>
+            {/* Mobile Save Button - Only for EDITING portfolios */}
+            {portfolioId && (
+              <button
+                onClick={handleSaveChanges}
+                disabled={isSaving}
+                className="flex items-center justify-center w-10 h-10 bg-gray-700 text-white rounded-full shadow-lg hover:scale-105 transition-transform disabled:opacity-50"
+              >
+                {isSaving ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Save className="w-4 h-4" />
+                )}
+              </button>
+            )}
           </div>
         </div>
       </header>
