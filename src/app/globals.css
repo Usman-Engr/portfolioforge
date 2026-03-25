@@ -48,6 +48,37 @@ body {
   background: #334155;
 }
 
+/* Page Layout Utilities */
+@layer components {
+  /* Standard page layout with navbar - adds 80px top padding */
+  .page-with-navbar {
+    padding-top: 5rem; /* 80px - matches navbar height */
+  }
+
+  /* Full-screen page (auth pages, preview pages) */
+  .page-fullscreen {
+    min-height: 100vh;
+  }
+
+  /* Standard page content wrapper */
+  .page-content {
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .page-content {
+      padding: 2rem 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .page-content {
+      padding: 2rem 2rem;
+    }
+  }
+}
+
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }

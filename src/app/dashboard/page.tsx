@@ -247,6 +247,35 @@ export default function DashboardPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+        {/* Analytics Stats Cards */}
+        {portfolios.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <StatCard
+              label="Total Views"
+              value={portfolios.reduce(
+                (sum, p) => sum + (p.view_count || 0),
+                0,
+              )}
+              icon={<Eye className="w-5 h-5 text-blue-400" />}
+              trend="All time"
+              color="blue"
+            />
+            <StatCard
+              label="Live Websites"
+              value={portfolios.filter((p) => p.is_published).length}
+              icon={<Globe className="w-5 h-5 text-green-400" />}
+              trend="Published"
+              color="green"
+            />
+            <StatCard
+              label="Total Projects"
+              value={portfolios.length + resumes.length}
+              icon={<Layout className="w-5 h-5 text-purple-400" />}
+              trend="Created"
+              color="purple"
+            />
+          </div>
+        )}
         {/* Quick Start Guide for New Users */}
         {(portfolios.length === 0 && resumes.length === 0) && (
           <motion.div

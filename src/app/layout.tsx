@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Navbar } from "@/components/ui/Navbar";
 import { Providers } from "@/components/Providers";
 import { Toaster } from "sonner";
-import { usePathname } from "next/navigation";
+import ConditionalNavbarWrapper from "./components/ConditionalNavbarWrapper";
 
 const inter = {
   variable: "--font-inter",
@@ -27,23 +26,12 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased`}>
         <Providers>
           <Toaster position="bottom-right" theme="dark" richColors />
-          <NavbarWrapper>{children}</NavbarWrapper>
+          <ConditionalNavbarWrapper>
+            {children}
+          </ConditionalNavbarWrapper>
         </Providers>
         <Analytics />
       </body>
     </html>
   );
 }
-
-function NavbarWrapper({ children }: { children: React.ReactNode }) {
-  // This component needs to be a client component to use usePathname
-  // But since we're in a server component, we'll handle this differently
-  return (
-    <>
-      <ConditionalNavbar />
-      {children}
-    </>
-  );
-}
-
-import ConditionalNavbar from "./components/ConditionalNavbar";
