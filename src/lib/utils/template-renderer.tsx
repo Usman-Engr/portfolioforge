@@ -79,8 +79,6 @@ function resolveTemplateNode(
       return <DynamicFlowTemplate data={normalizedData} />;
     case "grid-master":
       return <GridMasterTemplate data={normalizedData} />;
-    case "studio-elite":
-      return <ProfessionalCVTemplate data={normalizedData} />;
     case "minimal-pro":
     default:
       return <MinimalProTemplate data={normalizedData} />;
@@ -121,7 +119,6 @@ export function getTemplateComponent(templateId: string) {
     case "mono-focus": return MonoFocusTemplate;
     case "dynamic-flow": return DynamicFlowTemplate;
     case "grid-master": return GridMasterTemplate;
-    case "studio-elite": return ProfessionalCVTemplate;
     case "minimal-pro":
     default: return MinimalProTemplate;
   }
@@ -133,19 +130,18 @@ export function getTemplateComponent(templateId: string) {
 export function isValidTemplateId(templateId: string): boolean {
   const validIds = [
     "minimal-pro",
-    "gradient-pro", 
-    "modern-tech", 
-    "creative-studio", 
+    "gradient-pro",
+    "modern-tech",
+    "creative-studio",
     "professional-cv",
-    "luxe-horizon", 
-    "brutalist-pulse", 
-    "aero-glass", 
+    "luxe-horizon",
+    "brutalist-pulse",
+    "aero-glass",
     "mono-focus",
-    "neon-drive", 
-    "organic-sage", 
-    "dynamic-flow", 
-    "grid-master", 
-    "studio-elite",
+    "neon-drive",
+    "organic-sage",
+    "dynamic-flow",
+    "grid-master"
   ];
   return validIds.includes(templateId);
 }

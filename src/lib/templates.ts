@@ -140,16 +140,6 @@ export const templates: TemplateInfo[] = [
         category: 'modern',
         targetAudience: 'all',
         features: ['Mesh gradients', 'Fluid typography', 'Glassmorphism', 'Responsive']
-    },
-    {
-        id: 'studio-elite',
-        name: 'Studio Elite',
-        description: 'Ultra-premium corporate portfolio for high-level executives and partners.',
-        isPremium: false,
-        thumbnailUrl: '/templates/professional-cv.png',
-        category: 'corporate',
-        targetAudience: 'corporate',
-        features: ['Executive summaries', 'Achievement tracking', 'Elite typography', 'Partnership layouts']
     }
 ];
 
