@@ -171,6 +171,11 @@ function BuilderContent() {
       toast.success("Changes saved successfully!", {
         description: "Your portfolio has been updated.",
       });
+
+      // Redirect to dashboard after successful save
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1000);
     } catch (error: any) {
       console.error("Save error:", error);
       toast.error(error.message || "Failed to save changes. Please try again.");
