@@ -5,6 +5,7 @@ import { serializePortfolio } from "@/lib/utils/serialization";
 
 // Template dynamic resolver
 import { getTemplateComponent } from "@/lib/utils/template-renderer";
+import { Metadata } from "next";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -49,7 +50,7 @@ async function incrementViewCount(slug: string) {
   }
 }
 
-export async function generateMetadata({ params }: PageProps) {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const portfolio = await getPortfolio(slug);
 
@@ -64,19 +65,52 @@ export async function generateMetadata({ params }: PageProps) {
       ? JSON.parse(portfolio.data)
       : portfolio.data;
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const portfolioUrl = `${baseUrl}/p/${slug}`;
+  const avatarUrl = data.personal.avatarUrl || data.personal.avatar;
+
   return {
-    title: `${data.personal.name} - Portfolio`,
-    description: data.personal.bio,
+    title: `${data.personal.name} - ${data.personal.title} | Portfolio`,
+    description: data.personal.bio || `Professional portfolio of ${data.personal.name}, ${data.personal.title}.`,
+    keywords: [
+      data.personal.name,
+      data.personal.title,
+      'portfolio',
+      'professional portfolio',
+      'resume',
+      'CV',
+      ...data.skills.map(s => typeof s === 'string' ? s : s.name).slice(0, 5)
+    ].filter(Boolean) as string[],
+    authors: [{ name: data.personal.name }],
+    creator: data.personal.name,
     openGraph: {
+      type: 'website',
+      locale: 'en_US',
+      url: portfolioUrl,
       title: `${data.personal.name} - ${data.personal.title}`,
-      description: data.personal.bio,
-      images: data.personal.avatar ? [data.personal.avatar] : [],
+      description: data.personal.bio || `Professional portfolio of ${data.personal.name}`,
+      siteName: 'PortfolioForge',
+      ...(avatarUrl && {
+        images: [
+          {
+            url: avatarUrl,
+            width: 1200,
+            height: 630,
+            alt: `${data.personal.name} - Profile Photo`,
+          }
+        ]
+      }),
     },
     twitter: {
-      card: "summary_large_image",
+      card: 'summary_large_image',
       title: `${data.personal.name} - ${data.personal.title}`,
-      description: data.personal.bio,
-      images: data.personal.avatar ? [data.personal.avatar] : [],
+      description: data.personal.bio || `Professional portfolio of ${data.personal.name}`,
+      ...(avatarUrl && {
+        images: [avatarUrl]
+      }),
+    },
+    alternates: {
+      canonical: portfolioUrl,
     },
   };
 }
@@ -109,6 +143,27 @@ export default async function PublicPortfolioPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen">
+      {/* JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Person",
+            name: data.personal.name,
+            jobTitle: data.personal.title,
+            description: data.personal.bio,
+            url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/p/${slug}`,
+            image: data.personal.avatarUrl || data.personal.avatar,
+            email: data.contact.email,
+            address: data.personal.location,
+            knowsAbout: data.skills.map(s => typeof s === 'string' ? s : s.name),
+            worksFor: data.experience?.[0]?.company,
+            alumniOf: data.education?.[0]?.institution,
+          }),
+        }}
+      />
+
       <TemplateComponent data={data} />
 
       {/* Analytics Tracking */}

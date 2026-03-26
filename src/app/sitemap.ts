@@ -8,8 +8,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     let portfolioUrls: any[] = [];
     try {
         const portfolios = await db.query(
-            `SELECT slug, updated_at 
-         FROM public.app_portfolios 
+            `SELECT slug, updated_at
+         FROM public.app_portfolios
          WHERE is_published = true`
         );
 
@@ -17,31 +17,39 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             url: `${baseUrl}/p/${portfolio.slug}`,
             lastModified: new Date(portfolio.updated_at),
             changeFrequency: 'weekly' as const,
-            priority: 0.8,
+            priority: 0.7,
         }));
     } catch (error) {
         console.warn('Sitemap: Could not fetch portfolios, skipping dynamic routes.', error);
     }
 
-    return [
+    // Static pages
+    const staticPages = [
         {
             url: baseUrl,
             lastModified: new Date(),
-            changeFrequency: 'daily',
+            changeFrequency: 'daily' as const,
             priority: 1,
+        },
+        {
+            url: `${baseUrl}/templates`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly' as const,
+            priority: 0.9,
         },
         {
             url: `${baseUrl}/auth/login`,
             lastModified: new Date(),
-            changeFrequency: 'monthly',
-            priority: 0.5,
+            changeFrequency: 'monthly' as const,
+            priority: 0.6,
         },
         {
             url: `${baseUrl}/auth/signup`,
             lastModified: new Date(),
-            changeFrequency: 'monthly',
-            priority: 0.5,
+            changeFrequency: 'monthly' as const,
+            priority: 0.8,
         },
-        ...portfolioUrls,
     ];
+
+    return [...staticPages, ...portfolioUrls];
 }
