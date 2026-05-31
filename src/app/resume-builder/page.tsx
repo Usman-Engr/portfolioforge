@@ -24,6 +24,7 @@ import {
   SlidersHorizontal,
   Eye,
   Save,
+  Camera,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -74,105 +75,141 @@ function PersonalInfoResumeForm({
 }) {
   const field = (k: keyof ResumePersonal, v: string) =>
     onChange({ ...data, [k]: v });
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      onChange({ ...data, avatarUrl: reader.result as string });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const inputCls =
+    "w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/60 transition-all";
+  const labelCls =
+    "text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 block";
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
+      {/* Avatar Upload */}
+      <div className="flex items-center gap-5">
+        <div className="relative group">
+          <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-white/15 bg-white/5 overflow-hidden flex items-center justify-center cursor-pointer hover:border-blue-500/40 transition-all"
+            onClick={() => document.getElementById("avatar-upload")?.click()}>
+            {data.avatarUrl ? (
+              <img src={data.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <div className="flex flex-col items-center gap-1 text-gray-500">
+                <Camera className="w-6 h-6" />
+                <span className="text-[9px] font-bold uppercase tracking-wider">Photo</span>
+              </div>
+            )}
+          </div>
+          <input
+            id="avatar-upload"
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarUpload}
+            className="hidden"
+          />
+        </div>
+        <div className="flex-1">
+          <p className="text-xs text-gray-400 mb-1">
+            Upload a professional photo for your Europass CV
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => document.getElementById("avatar-upload")?.click()}
+              className="px-3 py-1.5 bg-blue-600/20 border border-blue-500/30 rounded-lg text-[10px] font-bold text-blue-400 uppercase tracking-widest hover:bg-blue-600/30 transition-all"
+            >
+              Upload
+            </button>
+            {data.avatarUrl && (
+              <button
+                type="button"
+                onClick={() => onChange({ ...data, avatarUrl: "" })}
+                className="px-3 py-1.5 bg-red-600/10 border border-red-500/20 rounded-lg text-[10px] font-bold text-red-400 uppercase tracking-widest hover:bg-red-600/20 transition-all"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Full Name & Job Title */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {[
-          {
-            key: "fullName" as const,
-            label: "Full Name *",
-            placeholder: "Alexandra Johnson",
-          },
-          {
-            key: "jobTitle" as const,
-            label: "Job Title *",
-            placeholder: "Senior Product Designer",
-          },
+          { key: "fullName" as const, label: "Full Name *", placeholder: "Daryl Banks" },
+          { key: "jobTitle" as const, label: "Job Title *", placeholder: "Senior Project Manager" },
         ].map(({ key, label, placeholder }) => (
           <div key={key}>
-            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 block">
-              {label}
-            </label>
-            <input
-              type="text"
-              value={data[key] || ""}
-              onChange={(e) => field(key, e.target.value)}
-              placeholder={placeholder}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/60 transition-all"
-            />
+            <label className={labelCls}>{label}</label>
+            <input type="text" value={data[key] || ""} onChange={(e) => field(key, e.target.value)} placeholder={placeholder} className={inputCls} />
           </div>
         ))}
       </div>
+
+      {/* Email & Phone */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {[
-          {
-            key: "email" as const,
-            label: "Email *",
-            placeholder: "alex@example.com",
-            type: "email",
-          },
-          {
-            key: "phone" as const,
-            label: "Phone",
-            placeholder: "+1 (555) 000-0000",
-            type: "tel",
-          },
+          { key: "email" as const, label: "Email *", placeholder: "daryl@example.com", type: "email" },
+          { key: "phone" as const, label: "Phone Number", placeholder: "+49 30 9876543", type: "tel" },
         ].map(({ key, label, placeholder, type }) => (
           <div key={key}>
-            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 block">
-              {label}
-            </label>
-            <input
-              type={type}
-              value={data[key] || ""}
-              onChange={(e) => field(key, e.target.value)}
-              placeholder={placeholder}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/60 transition-all"
-            />
+            <label className={labelCls}>{label}</label>
+            <input type={type} value={data[key] || ""} onChange={(e) => field(key, e.target.value)} placeholder={placeholder} className={inputCls} />
           </div>
         ))}
       </div>
+
+      {/* Location */}
       <div>
-        <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 block">
-          Location
-        </label>
-        <input
-          type="text"
-          value={data.location || ""}
-          onChange={(e) => field("location", e.target.value)}
-          placeholder="New York, NY"
-          className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/60 transition-all"
-        />
+        <label className={labelCls}>Address</label>
+        <input type="text" value={data.location || ""} onChange={(e) => field("location", e.target.value)} placeholder="Kantstraße 14, 10623, Berlin, Germany" className={inputCls} />
       </div>
+
+      {/* Date of Birth, Nationality, Gender */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <label className={labelCls}>Date of Birth</label>
+          <input type="text" value={data.dateOfBirth || ""} onChange={(e) => field("dateOfBirth", e.target.value)} placeholder="15/05/1990" className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>Nationality</label>
+          <input type="text" value={data.nationality || ""} onChange={(e) => field("nationality", e.target.value)} placeholder="German" className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>Gender</label>
+          <select value={data.gender || ""} onChange={(e) => field("gender", e.target.value)} className={inputCls}>
+            <option value="">Select</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+            <option value="Prefer not to say">Prefer not to say</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Driving Licence */}
+      <div>
+        <label className={labelCls}>Driving Licence</label>
+        <input type="text" value={data.drivingLicence || ""} onChange={(e) => field("drivingLicence", e.target.value)} placeholder="B" className={inputCls} />
+      </div>
+
+      {/* LinkedIn, Website, GitHub */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {[
-          {
-            key: "linkedin" as const,
-            label: "LinkedIn",
-            placeholder: "linkedin.com/in/alex",
-          },
-          {
-            key: "website" as const,
-            label: "Website / Portfolio",
-            placeholder: "alex.dev",
-          },
-          {
-            key: "github" as const,
-            label: "GitHub",
-            placeholder: "github.com/alex",
-          },
+          { key: "linkedin" as const, label: "LinkedIn", placeholder: "linkedin.com/in/daryl" },
+          { key: "website" as const, label: "Website / Portfolio", placeholder: "darylbanks.dev" },
+          { key: "github" as const, label: "GitHub", placeholder: "github.com/daryl" },
         ].map(({ key, label, placeholder }) => (
           <div key={key}>
-            <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 block">
-              {label}
-            </label>
-            <input
-              type="text"
-              value={data[key] || ""}
-              onChange={(e) => field(key, e.target.value)}
-              placeholder={placeholder}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/60 transition-all"
-            />
+            <label className={labelCls}>{label}</label>
+            <input type="text" value={data[key] || ""} onChange={(e) => field(key, e.target.value)} placeholder={placeholder} className={inputCls} />
           </div>
         ))}
       </div>
@@ -676,6 +713,37 @@ function ResumeBuilderContent() {
                   )}
                 </motion.div>
               </AnimatePresence>
+
+              {/* ── Accent Color Picker ── */}
+              <div className="mt-6 pt-5 border-t border-white/5">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 block">
+                  Template Color
+                </label>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {[
+                    { color: "#0e4e96", label: "Classic Blue" },
+                    { color: "#1a237e", label: "Navy" },
+                    { color: "#00695c", label: "Teal" },
+                    { color: "#2e7d32", label: "Green" },
+                    { color: "#6a1b9a", label: "Purple" },
+                    { color: "#c62828", label: "Red" },
+                    { color: "#e65100", label: "Orange" },
+                    { color: "#37474f", label: "Charcoal" },
+                  ].map(({ color, label }) => (
+                    <button
+                      key={color}
+                      title={label}
+                      onClick={() => setResumeData({ ...resumeData, accentColor: color })}
+                      className={`w-8 h-8 rounded-full border-2 transition-all hover:scale-110 ${
+                        (resumeData.accentColor || "#0e4e96") === color
+                          ? "border-white scale-110 shadow-[0_0_12px_rgba(255,255,255,0.3)]"
+                          : "border-transparent opacity-70 hover:opacity-100"
+                      }`}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+              </div>
 
               <div className="mt-8 pt-6 border-t border-white/5 flex justify-between">
                 {SECTIONS.findIndex((s) => s.id === activeSection) > 0 ? (

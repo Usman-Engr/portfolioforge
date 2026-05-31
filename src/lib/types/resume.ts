@@ -10,6 +10,10 @@ export interface ResumePersonal {
   linkedin?: string;
   github?: string;
   avatarUrl?: string;
+  dateOfBirth?: string;
+  nationality?: string;
+  gender?: string;
+  drivingLicence?: string;
 }
 
 export interface ResumeWorkExperience {
@@ -57,6 +61,7 @@ export interface ResumeLanguage {
   id: string;
   language: string;
   proficiency: 'Native' | 'Fluent' | 'Advanced' | 'Intermediate' | 'Basic';
+  isMotherTongue?: boolean;
 }
 
 export interface ResumeData {
@@ -82,6 +87,10 @@ export const defaultResumeData: ResumeData = {
     website: '',
     linkedin: '',
     github: '',
+    dateOfBirth: '',
+    nationality: '',
+    gender: '',
+    drivingLicence: '',
   },
   summary: '',
   workExperience: [],

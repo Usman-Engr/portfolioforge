@@ -97,20 +97,27 @@ export async function POST(request: NextRequest) {
 
     console.log(`[PDF] Generating resume: ${templateId}`);
 
-    // Build render URL
+    // Build render URL WITHOUT the huge data query param
     const protocol = request.headers.get("x-forwarded-proto") || "http";
     const host = request.headers.get("host") || "localhost:3009";
     const baseUrl = `${protocol}://${host}`;
 
-    // Encode data for URL
-    const encodedData = Buffer.from(JSON.stringify(data)).toString("base64");
-    const renderUrl = `${baseUrl}/export/resume/${templateId}?data=${encodeURIComponent(encodedData)}&pdf=1`;
+    const renderUrl = `${baseUrl}/export/resume/${templateId}?pdf=1`;
 
-    console.log(`[PDF] Render URL: ${renderUrl.substring(0, 100)}...`);
+    console.log(`[PDF] Render URL: ${renderUrl}`);
 
     // Get browser and page
     const browser = await getBrowser();
     page = await browser.newPage();
+
+    // Log browser console to node console for debugging
+    page.on('console', (msg: any) => console.log(`[Browser Console] ${msg.type().toUpperCase()}: ${msg.text()}`));
+    page.on('pageerror', (err: any) => console.error(`[Browser Error] ${err.toString()}`));
+
+    // Inject data into window object BEFORE navigation to bypass URL length limits
+    await page.evaluateOnNewDocument((resumeData: any) => {
+      (window as any).__RESUME_DATA__ = resumeData;
+    }, data);
 
     // Set viewport to A4
     await page.setViewport(VIEWPORT);
