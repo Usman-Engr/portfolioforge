@@ -206,7 +206,7 @@ function TemplatePicker({
               Choose Template
             </h2>
             <p className="text-xs text-gray-500 mt-1">
-              5 professional resume designs
+              10 professional resume designs
             </p>
           </div>
           <button
@@ -286,7 +286,7 @@ function ResumeBuilderContent() {
   });
   const [activeSection, setActiveSection] = useState<Section>("personal");
   const [selectedTemplateId, setSelectedTemplateId] =
-    useState("resume-classic");
+    useState("resume-modern-minimalist");
   const [previewDevice, setPreviewDevice] = useState<
     "desktop" | "tablet" | "mobile"
   >("desktop");
@@ -556,11 +556,10 @@ function ResumeBuilderContent() {
               key={id}
               onClick={() => setActiveSection(id)}
               title={label}
-              className={`relative group w-14 h-14 rounded-2xl transition-all duration-300 flex flex-col items-center justify-center gap-1 ${
-                activeSection === id
-                  ? "bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] scale-105"
-                  : "text-gray-500 hover:text-white hover:bg-white/5"
-              }`}
+              className={`relative group w-14 h-14 rounded-2xl transition-all duration-300 flex flex-col items-center justify-center gap-1 ${activeSection === id
+                ? "bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] scale-105"
+                : "text-gray-500 hover:text-white hover:bg-white/5"
+                }`}
             >
               <Icon className="w-5 h-5" />
               <span className="text-[8px] font-bold uppercase tracking-wide leading-none">
@@ -585,11 +584,10 @@ function ResumeBuilderContent() {
                   setActiveSection(id);
                   scrollToTopOfForm();
                 }}
-                className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-                  activeSection === id
-                    ? "bg-blue-600 text-white shadow-lg"
-                    : "text-gray-500 hover:text-white hover:bg-white/5"
-                }`}
+                className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${activeSection === id
+                  ? "bg-blue-600 text-white shadow-lg"
+                  : "text-gray-500 hover:text-white hover:bg-white/5"
+                  }`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 {label}
@@ -704,25 +702,25 @@ function ResumeBuilderContent() {
                 )}
                 {SECTIONS.findIndex((s) => s.id === activeSection) <
                   SECTIONS.length - 1 && (
-                  <button
-                    onClick={() => {
-                      setActiveSection(
+                    <button
+                      onClick={() => {
+                        setActiveSection(
+                          SECTIONS[
+                            SECTIONS.findIndex((s) => s.id === activeSection) + 1
+                          ].id,
+                        );
+                        scrollToTopOfForm();
+                      }}
+                      className="flex items-center gap-2 text-xs text-blue-400 hover:text-blue-300 transition-colors font-bold uppercase tracking-widest ml-auto"
+                    >
+                      {
                         SECTIONS[
                           SECTIONS.findIndex((s) => s.id === activeSection) + 1
-                        ].id,
-                      );
-                      scrollToTopOfForm();
-                    }}
-                    className="flex items-center gap-2 text-xs text-blue-400 hover:text-blue-300 transition-colors font-bold uppercase tracking-widest ml-auto"
-                  >
-                    {
-                      SECTIONS[
-                        SECTIONS.findIndex((s) => s.id === activeSection) + 1
-                      ].label
-                    }
-                    <ChevronLeft className="w-4 h-4 rotate-180" />
-                  </button>
-                )}
+                        ].label
+                      }
+                      <ChevronLeft className="w-4 h-4 rotate-180" />
+                    </button>
+                  )}
               </div>
             </div>
           </div>

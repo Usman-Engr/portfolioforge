@@ -39,7 +39,7 @@ export default function ClassicProfessional({ data }: Props) {
       {/* 100% Height Absolute Background Pillars to solve PDF engine flex bugs */}
       <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: "62%", backgroundColor: "#ffffff", zIndex: -1 }} />
       <div style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: "38%", backgroundColor: "#f7f9fc", zIndex: -1 }} />
-      
+
       {/* Header */}
       <div style={{ backgroundColor: accentColor, padding: "32px 40px 28px", color: "#ffffff", position: "relative", zIndex: 1 }}>
         <h1 style={{ fontSize: "28px", fontWeight: 700, letterSpacing: "1px", margin: 0, fontFamily: "'Georgia', serif" }}>
@@ -48,7 +48,7 @@ export default function ClassicProfessional({ data }: Props) {
         <p style={{ fontSize: "14px", margin: "6px 0 0", color: "#a8c4e0", letterSpacing: "2px", textTransform: "uppercase", fontFamily: "Arial, sans-serif", fontWeight: 400 }}>
           {personal.jobTitle || "Professional Title"}
         </p>
-        <div style={{ display: "block", flexWrap: "wrap", gap: "16px", marginTop: "16px", fontFamily: "Arial, sans-serif", fontSize: "11px", color: "#c8dcea" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginTop: "16px", fontFamily: "Arial, sans-serif", fontSize: "11px", color: "#c8dcea" }}>
           {personal.email && <span>✉ {personal.email}</span>}
           {personal.phone && <span>✆ {personal.phone}</span>}
           {personal.location && <span>⊙ {personal.location}</span>}
@@ -58,7 +58,7 @@ export default function ClassicProfessional({ data }: Props) {
       </div>
 
       {/* Body: Two-column */}
-      <div style={{ display: "block", flexDirection: "row" }}>
+      <div style={{ display: "flex", flexDirection: "row" }}>
         {/* Left Column */}
         <div style={{ width: "62%", padding: "28px 24px 28px 40px", borderRight: "1px solid #e8eef4" }}>
           {/* Summary */}
@@ -79,7 +79,7 @@ export default function ClassicProfessional({ data }: Props) {
               </div>
               {workExperience.map((job, i) => (
                 <div key={i} style={{ marginBottom: "18px" }}>
-                  <div style={{ display: "block", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div>
                       <h3 style={{ fontSize: "13px", fontWeight: 700, margin: 0, color: "#111", fontFamily: "Arial, sans-serif" }}>{job.position}</h3>
                       <p style={{ fontSize: "12px", color: accentColor, margin: "2px 0", fontFamily: "Arial, sans-serif", fontStyle: "italic" }}>
@@ -113,16 +113,19 @@ export default function ClassicProfessional({ data }: Props) {
               </div>
               {education.map((edu, i) => (
                 <div key={i} style={{ marginBottom: "12px" }}>
-                  <div style={{ display: "block", justifyContent: "space-between" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <div>
                       <h3 style={{ fontSize: "12.5px", fontWeight: 700, margin: 0, fontFamily: "Arial, sans-serif" }}>{edu.degree}{edu.fieldOfStudy ? `, ${edu.fieldOfStudy}` : ""}</h3>
                       <p style={{ fontSize: "11.5px", color: accentColor, margin: "2px 0", fontFamily: "Arial, sans-serif", fontStyle: "italic" }}>{edu.institution}</p>
+                      {edu.location && <p style={{ fontSize: "10.5px", color: "#888", margin: "1px 0", fontFamily: "Arial, sans-serif" }}>{edu.location}</p>}
                       {edu.gpa && <p style={{ fontSize: "10.5px", color: "#666", margin: "1px 0", fontFamily: "Arial, sans-serif" }}>GPA: {edu.gpa}</p>}
+                      {edu.honors && <p style={{ fontSize: "10.5px", color: "#666", margin: "1px 0", fontFamily: "Arial, sans-serif", fontStyle: "italic" }}>{edu.honors}</p>}
                     </div>
                     <span style={{ fontSize: "10.5px", color: "#666", whiteSpace: "nowrap", marginLeft: "8px", fontFamily: "Arial, sans-serif" }}>
-                      {formatDate(edu.startDate)}{edu.endDate ? ` – ${formatDate(edu.endDate)}` : ""}
+                      {formatDate(edu.startDate)}{edu.endDate ? ` – ${formatDate(edu.endDate)}` : edu.startDate ? " – Present" : ""}
                     </span>
                   </div>
+                  {edu.description && <p style={{ fontSize: "10.5px", color: "#555", margin: "4px 0 0", fontFamily: "Arial, sans-serif", lineHeight: "1.5" }}>{edu.description}</p>}
                 </div>
               ))}
             </section>

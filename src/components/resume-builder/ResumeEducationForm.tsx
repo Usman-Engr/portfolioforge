@@ -20,7 +20,7 @@ function emptyEducation(): ResumeEducation {
 
 function EduCard({ edu, index, onUpdate, onDelete }: { edu: ResumeEducation; index: number; onUpdate: (u: ResumeEducation) => void; onDelete: () => void }) {
   const [expanded, setExpanded] = useState(index === 0);
-  const field = (k: keyof ResumeEducation, v: string) => onUpdate({ ...edu, [k]: v });
+  const field = (k: keyof ResumeEducation, v: string | boolean) => onUpdate({ ...edu, [k]: v });
 
   return (
     <div className="bg-white/3 border border-white/8 rounded-2xl overflow-hidden">
@@ -61,16 +61,33 @@ function EduCard({ edu, index, onUpdate, onDelete }: { edu: ResumeEducation; ind
                 </div>
                 <div>
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 block">End Date</label>
-                  <input type="month" value={edu.endDate || ""} onChange={(e) => field("endDate", e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/60 transition-all [color-scheme:dark]" />
+                  <input type="month" value={edu.endDate || ""} onChange={(e) => field("endDate", e.target.value)} disabled={!!edu.isCurrent} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500/60 transition-all disabled:opacity-40 disabled:cursor-not-allowed [color-scheme:dark]" />
+                </div>
+              </div>
+
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <div
+                  onClick={() => onUpdate({ ...edu, isCurrent: !edu.isCurrent, endDate: !edu.isCurrent ? "" : edu.endDate })}
+                  className={`w-9 h-5 rounded-full transition-colors relative ${edu.isCurrent ? "bg-blue-500" : "bg-white/10"}`}
+                >
+                  <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${edu.isCurrent ? "translate-x-4" : "translate-x-0.5"}`} />
+                </div>
+                <span className="text-sm text-gray-400">Currently studying here</span>
+              </label>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 block">GPA (Optional)</label>
+                  <input type="text" value={edu.gpa || ""} onChange={(e) => field("gpa", e.target.value)} placeholder="3.8 / 4.0" className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/60 transition-all" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 block">Honors (Optional)</label>
+                  <input type="text" value={edu.honors || ""} onChange={(e) => field("honors", e.target.value)} placeholder="Cum Laude, Dean's List..." className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/60 transition-all" />
                 </div>
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 block">GPA (Optional)</label>
-                <input type="text" value={edu.gpa || ""} onChange={(e) => field("gpa", e.target.value)} placeholder="3.8 / 4.0" className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/60 transition-all" />
-              </div>
-              <div>
                 <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5 block">Additional Details</label>
-                <textarea value={edu.description || ""} onChange={(e) => field("description", e.target.value)} placeholder="Relevant coursework, honors, thesis, clubs..." rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/60 transition-all resize-none" />
+                <textarea value={edu.description || ""} onChange={(e) => field("description", e.target.value)} placeholder="Relevant coursework, thesis, clubs, activities..." rows={3} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500/60 transition-all resize-none" />
               </div>
               <button type="button" onClick={onDelete} className="flex items-center gap-1.5 text-xs text-red-400/70 hover:text-red-400 transition-colors">
                 <Trash2 className="w-3.5 h-3.5" />Remove this entry

@@ -32,6 +32,7 @@ export interface ResumeEducation {
   location?: string;
   startDate: string;
   endDate?: string;
+  isCurrent?: boolean;
   gpa?: string;
   honors?: string;
   description?: string;
@@ -95,11 +96,16 @@ export const defaultResumeData: ResumeData = {
 
 // Valid resume template IDs
 export const RESUME_TEMPLATE_IDS = [
-  'resume-classic',
-  'resume-timeline',
-  'resume-executive',
-  'resume-minimalist',
-  'resume-creative',
+  'resume-ivy-league',
+  'resume-modern-minimalist',
+  'resume-europass',
+  'resume-tech-stack',
+  'resume-executive-leadership',
+  'resume-project-based',
+  'resume-hybrid-functional',
+  'resume-uk-gold',
+  'resume-creative-subtle',
+  'resume-swiss-design',
 ] as const;
 
 export type ResumeTemplateId = typeof RESUME_TEMPLATE_IDS[number];
