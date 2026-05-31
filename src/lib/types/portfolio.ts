@@ -56,7 +56,10 @@ export interface Experience {
     id?: string;
     company: string;
     role: string;
-    duration: string;
+    duration: string; // legacy display string
+    startDate?: string; // YYYY-MM
+    endDate?: string;   // YYYY-MM
+    isCurrent?: boolean;
     description: string;
 }
 
@@ -64,7 +67,11 @@ export interface Education {
     id?: string;
     institution: string;
     degree: string;
-    year: string;
+    year: string; // legacy display string
+    startDate?: string; // YYYY-MM
+    endDate?: string;   // YYYY-MM
+    isCurrent?: boolean;
+    fieldOfStudy?: string;
     description?: string;
 }
 

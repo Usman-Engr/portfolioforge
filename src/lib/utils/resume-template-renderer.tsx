@@ -1,50 +1,55 @@
 import { ResumeData } from "@/lib/types/resume";
 import { ReactNode } from "react";
-import ClassicProfessional from "@/components/resume-templates/ClassicProfessional";
-import ModernTimeline from "@/components/resume-templates/ModernTimeline";
-import ExecutiveBold from "@/components/resume-templates/ExecutiveBold";
-import MinimalistClean from "@/components/resume-templates/MinimalistClean";
-import CreativeAccent from "@/components/resume-templates/CreativeAccent";
+import IvyLeagueAcademic from "@/components/resume-templates/IvyLeagueAcademic";
+import ModernMinimalist from "@/components/resume-templates/ModernMinimalist";
+import EuropassStandard from "@/components/resume-templates/EuropassStandard";
+import TechStackPro from "@/components/resume-templates/TechStackPro";
+import ExecutiveLeadership from "@/components/resume-templates/ExecutiveLeadership";
+import ProjectBased from "@/components/resume-templates/ProjectBased";
+import HybridFunctional from "@/components/resume-templates/HybridFunctional";
+import UKGoldStandard from "@/components/resume-templates/UKGoldStandard";
+import CreativeSubtle from "@/components/resume-templates/CreativeSubtle";
+import SwissDesign from "@/components/resume-templates/SwissDesign";
 
 export const RESUME_TEMPLATE_IDS = [
-  "resume-classic",
-  "resume-timeline",
-  "resume-executive",
-  "resume-minimalist",
-  "resume-creative",
+  "resume-ivy-league",
+  "resume-modern-minimalist",
+  "resume-europass",
+  "resume-tech-stack",
+  "resume-executive-leadership",
+  "resume-project-based",
+  "resume-hybrid-functional",
+  "resume-uk-gold",
+  "resume-creative-subtle",
+  "resume-swiss-design",
 ] as const;
 
+export type ResumeTemplateId = typeof RESUME_TEMPLATE_IDS[number];
+
 export function isValidResumeTemplateId(id: string): boolean {
-  return RESUME_TEMPLATE_IDS.includes(id as any);
+  return RESUME_TEMPLATE_IDS.includes(id as ResumeTemplateId);
 }
 
 function resolveResumeTemplate(templateId: string, data: ResumeData): ReactNode {
   switch (templateId) {
-    case "resume-classic":
-      return <ClassicProfessional data={data} />;
-    case "resume-timeline":
-      return <ModernTimeline data={data} />;
-    case "resume-executive":
-      return <ExecutiveBold data={data} />;
-    case "resume-minimalist":
-      return <MinimalistClean data={data} />;
-    case "resume-creative":
-      return <CreativeAccent data={data} />;
-    default:
-      return <ClassicProfessional data={data} />;
+    case "resume-ivy-league": return <IvyLeagueAcademic data={data} />;
+    case "resume-modern-minimalist": return <ModernMinimalist data={data} />;
+    case "resume-europass": return <EuropassStandard data={data} />;
+    case "resume-tech-stack": return <TechStackPro data={data} />;
+    case "resume-executive-leadership": return <ExecutiveLeadership data={data} />;
+    case "resume-project-based": return <ProjectBased data={data} />;
+    case "resume-hybrid-functional": return <HybridFunctional data={data} />;
+    case "resume-uk-gold": return <UKGoldStandard data={data} />;
+    case "resume-creative-subtle": return <CreativeSubtle data={data} />;
+    case "resume-swiss-design": return <SwissDesign data={data} />;
+    default: return <ModernMinimalist data={data} />;
   }
 }
 
-/**
- * Renders a resume template for the live preview in the builder
- */
 export function renderResumeTemplate(templateId: string, data: ResumeData): ReactNode {
   return resolveResumeTemplate(templateId, data);
 }
 
-/**
- * Renders a resume template for PDF export (no wrapper, raw output)
- */
 export function renderResumeTemplateForExport(templateId: string, data: ResumeData): ReactNode {
   return resolveResumeTemplate(templateId, data);
 }

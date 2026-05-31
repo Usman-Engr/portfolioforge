@@ -18,15 +18,23 @@ function ResumeRenderContent({ templateId }: { templateId: string }) {
   const [data, setData] = useState<ResumeData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // ── 1. Decode resume data from URL ────────────────────────────────────────
+  // ── 1. Decode resume data from window or URL ─────────────────────────────
   useEffect(() => {
     try {
+      // First try to get data injected by Puppeteer to avoid URI length limits
+      const injectedData = (window as any).__RESUME_DATA__;
+      if (injectedData) {
+        setData(injectedData);
+        return;
+      }
+
+      // Fallback for direct browser testing via query string
       const dataParam = searchParams.get("data");
       if (!dataParam) {
         setError("No resume data provided");
         return;
       }
-      // Data is base64-encoded JSON, identical to what the API route encodes
+      
       const decoded = Buffer.from(dataParam, "base64").toString("utf-8");
       const parsed = JSON.parse(decoded) as ResumeData;
       setData(parsed);

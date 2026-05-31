@@ -43,7 +43,7 @@ export default function CreativeAccent({ data }: Props) {
         color: "#1a1a1a",
         margin: "0 auto",
         display: "block",
-        
+
         boxSizing: "border-box",
         wordBreak: "break-word",
         WebkitPrintColorAdjust: "exact",
@@ -67,15 +67,16 @@ export default function CreativeAccent({ data }: Props) {
       </div>
 
       {/* Contact Strip */}
-      <div style={{ backgroundColor: "#1f1334", padding: "8px 32px", display: "block", justifyContent: "center", flexWrap: "wrap", gap: "20px" }}>
+      <div style={{ backgroundColor: "#1f1334", padding: "8px 32px", display: "flex", justifyContent: "center", flexWrap: "wrap", gap: "20px" }}>
         {personal.email && <span style={{ fontSize: "10.5px", color: "rgba(255,255,255,0.75)" }}>✉ {personal.email}</span>}
         {personal.phone && <span style={{ fontSize: "10.5px", color: "rgba(255,255,255,0.75)" }}>✆ {personal.phone}</span>}
         {personal.location && <span style={{ fontSize: "10.5px", color: "rgba(255,255,255,0.75)" }}>⊙ {personal.location}</span>}
         {personal.linkedin && <span style={{ fontSize: "10.5px", color: "rgba(255,255,255,0.75)" }}>in {personal.linkedin}</span>}
+        {personal.website && <span style={{ fontSize: "10.5px", color: "rgba(255,255,255,0.75)" }}>⊕ {personal.website}</span>}
       </div>
 
       {/* Body: Sidebar + Main */}
-      <div style={{ display: "block", flex: 1 }}>
+      <div style={{ display: "flex", flex: 1 }}>
         {/* Sidebar */}
         <div style={{ width: "36%", backgroundColor: "#2d1b69", padding: "28px 22px", color: "#fff" }}>
           {/* Skills */}
@@ -84,7 +85,7 @@ export default function CreativeAccent({ data }: Props) {
               {skills.filter((g) => g.skills.length > 0).map((group, i) => (
                 <div key={i} style={{ marginBottom: "12px" }}>
                   <p style={{ fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.5)", margin: "0 0 6px", textTransform: "uppercase", letterSpacing: "0.8px" }}>{group.category}</p>
-                  <div style={{ display: "block", flexWrap: "wrap", gap: "4px" }}>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
                     {group.skills.map((skill, j) => (
                       <span key={j} style={{ fontSize: "10px", padding: "3px 9px", backgroundColor: "rgba(255,255,255,0.1)", borderRadius: "100px", color: "rgba(255,255,255,0.9)", border: "1px solid rgba(255,255,255,0.15)" }}>
                         {skill}
@@ -104,7 +105,8 @@ export default function CreativeAccent({ data }: Props) {
                   <p style={{ fontSize: "11.5px", fontWeight: 700, margin: "0 0 1px", color: "#fff" }}>{edu.degree}</p>
                   {edu.fieldOfStudy && <p style={{ fontSize: "10.5px", color: "rgba(255,255,255,0.6)", margin: "0 0 1px" }}>{edu.fieldOfStudy}</p>}
                   <p style={{ fontSize: "11px", color: `${accentLight}cc`, margin: "0 0 1px" }}>{edu.institution}</p>
-                  <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", margin: 0 }}>{formatDate(edu.startDate)}{edu.endDate ? ` – ${formatDate(edu.endDate)}` : ""}{edu.gpa ? ` · ${edu.gpa} GPA` : ""}</p>
+                  <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", margin: 0 }}>{formatDate(edu.startDate)}{edu.endDate ? ` – ${formatDate(edu.endDate)}` : edu.startDate ? " – Present" : ""}{edu.gpa ? ` · ${edu.gpa} GPA` : ""}</p>
+                  {edu.honors && <p style={{ fontSize: "9.5px", color: "rgba(255,255,255,0.35)", margin: "1px 0", fontStyle: "italic" }}>{edu.honors}</p>}
                 </div>
               ))}
             </SideSection>
@@ -114,7 +116,7 @@ export default function CreativeAccent({ data }: Props) {
           {languages.length > 0 && (
             <SideSection title="Languages">
               {languages.map((lang, i) => (
-                <div key={i} style={{ display: "block", justifyContent: "space-between", marginBottom: "6px" }}>
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
                   <span style={{ fontSize: "11px", color: "#fff" }}>{lang.language}</span>
                   <span style={{ fontSize: "9.5px", color: "rgba(255,255,255,0.45)" }}>{lang.proficiency}</span>
                 </div>
@@ -149,7 +151,7 @@ export default function CreativeAccent({ data }: Props) {
             <MainSection title="Experience">
               {workExperience.map((job, i) => (
                 <div key={i} style={{ marginBottom: "16px", paddingLeft: "12px", borderLeft: `2px solid ${accentLight}` }}>
-                  <div style={{ display: "block", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div>
                       <h3 style={{ fontSize: "13px", fontWeight: 700, margin: "0 0 1px", color: "#111827" }}>{job.position}</h3>
                       <p style={{ fontSize: "12px", color: accent, margin: "0 0 5px", fontWeight: 600 }}>{job.company}{job.location ? ` · ${job.location}` : ""}</p>
